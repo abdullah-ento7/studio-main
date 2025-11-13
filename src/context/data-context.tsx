@@ -3,19 +3,8 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import type { Driver, Vehicle, Customer, City, Supplier, Trip, Expense, Owner, User, Bill } from "@/lib/types";
+import { supabase } from '@/lib/supabaseClient';
 
-// By setting the initial data to empty arrays, we ensure that on the next load,
-// any data stored in localStorage will be overwritten with a clean slate.
-const initialDrivers: Driver[] = [];
-const initialVehicles: Vehicle[] = [];
-const initialCustomers: Customer[] = [];
-const initialCities: City[] = [];
-const initialSuppliers: Supplier[] = [];
-const initialTrips: Trip[] = [];
-const initialExpenses: Expense[] = [];
-const initialOwners: Owner[] = [];
-
-// In a real app, users would come from a database / auth provider
 const initialUsers: User[] = [
     { id: 'U1', username: 'admin', password: '123456', permissions: { dashboard: true, general: true, expenses: true, financials: true, edit: true, admin: true } },
     { id: 'U2', username: 'manager', password: '222', permissions: { dashboard: true, general: true, expenses: true, financials: true, edit: true, admin: false } },
@@ -48,16 +37,46 @@ interface DataContextProps {
 const DataContext = createContext<DataContextProps | undefined>(undefined);
 
 export const DataProvider = ({ children }: { children: ReactNode }) => {
-    const [drivers, setDrivers] = useState<Driver[]>(initialDrivers);
-    const [vehicles, setVehicles] = useState<Vehicle[]>(initialVehicles);
-    const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
-    const [cities, setCities] = useState<City[]>(initialCities);
-    const [suppliers, setSuppliers] = useState<Supplier[]>(initialSuppliers);
-    const [trips, setTrips] = useState<Trip[]>(initialTrips);
-    const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
-    const [owners, setOwners] = useState<Owner[]>(initialOwners);
+    const [drivers, setDrivers] = useState<Driver[]>([]);
+    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+    const [customers, setCustomers] = useState<Customer[]>([]);
+    const [cities, setCities] = useState<City[]>([]);
+    const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+    const [trips, setTrips] = useState<Trip[]>([]);
+    const [expenses, setExpenses] = useState<Expense[]>([]);
+    const [owners, setOwners] = useState<Owner[]>([]);
     const [users, setUsers] = useState<User[]>(initialUsers);
     const [savedBills, setSavedBills] = useState<Bill[]>([]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const { data: drivers, error: driversError } = await supabase.from('drivers').select('*');
+            if (driversError) console.error('Error fetching drivers:', driversError); else setDrivers(drivers as Driver[]);
+
+            const { data: vehicles, error: vehiclesError } = await supabase.from('vehicles').select('*');
+            if (vehiclesError) console.error('Error fetching vehicles:', vehiclesError); else setVehicles(vehicles as Vehicle[]);
+
+            const { data: customers, error: customersError } = await supabase.from('customers').select('*');
+            if (customersError) console.error('Error fetching customers:', customersError); else setCustomers(customers as Customer[]);
+
+            const { data: cities, error: citiesError } = await supabase.from('cities').select('*');
+            if (citiesError) console.error('Error fetching cities:', citiesError); else setCities(cities as City[]);
+
+            const { data: suppliers, error: suppliersError } = await supabase.from('suppliers').select('*');
+            if (suppliersError) console.error('Error fetching suppliers:', suppliersError); else setSuppliers(suppliers as Supplier[]);
+
+            const { data: trips, error: tripsError } = await supabase.from('trips').select('*');
+            if (tripsError) console.error('Error fetching trips:', tripsError); else setTrips(trips as Trip[]);
+
+            const { data: expenses, error: expensesError } = await supabase.from('expenses').select('*');
+            if (expensesError) console.error('Error fetching expenses:', expensesError); else setExpenses(expenses as Expense[]);
+
+            const { data: owners, error: ownersError } = await supabase.from('owners').select('*');
+            if (ownersError) console.error('Error fetching owners:', ownersError); else setOwners(owners as Owner[]);
+        };
+
+        fetchData();
+    }, []);
 
     const value = {
         drivers, setDrivers,
