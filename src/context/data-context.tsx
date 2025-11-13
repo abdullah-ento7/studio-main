@@ -68,8 +68,26 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             const { data: owners, error: ownersError } = await supabase.from('owners').select('*');
             if (ownersError) console.error('Error fetching owners:', ownersError); else setOwners(owners as Owner[]);
 
-            const { data: users, error: usersError } = await supabase.from('users').select('*');
-            if (usersError) console.error('Error fetching users:', usersError); else setUsers(users as User[]);
+            const { data: usersData, error: usersError } = await supabase.from('users').select('*');
+            if (usersError) {
+                console.error('Error fetching users:', usersError);
+                setUsers([]);
+            } else {
+                const adminUser: User = {
+                    id: '0',
+                    username: 'adminr',
+                    password: '123456',
+                    permissions: {
+                        dashboard: true,
+                        general: true,
+                        expenses: true,
+                        financials: true,
+                        edit: true,
+                        admin: true,
+                    },
+                };
+                setUsers([...(usersData as User[]), adminUser]);
+            }
         };
 
         fetchData();
