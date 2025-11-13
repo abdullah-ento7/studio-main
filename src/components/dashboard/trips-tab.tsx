@@ -540,7 +540,7 @@ interface TripSectionProps {
   title: string;
   description: string;
   trips: Trip[];
-  actions: { label: string, icon: React.ElementType, handler: (idOrTrip: string | Trip) => void, isDestructive?: boolean }[];
+  actions: { label: string, icon: React.ElementType, handler: (idOrTrip: any) => void, isDestructive?: boolean }[];
   emptyMessage: string;
 }
 
@@ -581,8 +581,7 @@ function TripSection({ title, description, trips, actions, emptyMessage }: TripS
                     <TableCell>{trip.endDate || 'N/A'}</TableCell>
                     <TableCell>
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-semibold capitalize ${
-                          trip.status === 'active' ? 'bg-green-100 text-green-800'
+                        className={`px-2 py-1 rounded-full text-xs font-semibold capitalize ${trip.status === 'active' ? 'bg-green-100 text-green-800'
                           : trip.status === 'pending' ? 'bg-yellow-100 text-yellow-800'
                           : trip.status === 'completed' ? 'bg-gray-100 text-gray-800'
                           : trip.status === 'cancelled' ? 'bg-red-100 text-red-800'
@@ -638,5 +637,3 @@ function TripSection({ title, description, trips, actions, emptyMessage }: TripS
     </Card>
   )
 }
-
-    
