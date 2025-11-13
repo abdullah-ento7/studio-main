@@ -4,11 +4,16 @@ import { cn } from '@/lib/utils';
 
 export function Logo({ className, ...props }: SVGProps<SVGSVGElement>) {
   return (
-    <div className={cn("flex items-center justify-center font-headline font-bold", className)} {...props}>
-        <span className="text-lg">j</span>
-        <span className="text-4xl">T</span>
-        <span className="text-lg">n</span>
-    </div>
+    <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        viewBox="0 0 100 40" 
+        className={cn("font-headline font-bold", className)} 
+        {...props}
+    >
+        <text x="10" y="30" className="text-lg">j</text>
+        <text x="30" y="35" className="text-4xl">T</text>
+        <text x="60" y="30" className="text-lg">n</text>
+    </svg>
   );
 }
 

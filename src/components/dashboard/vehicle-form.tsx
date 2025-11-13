@@ -27,13 +27,13 @@ export default function VehicleForm({ vehicle, onSave, isDialog = false, onDirty
   const [formKey, setFormKey] = useState(Date.now());
   const [localVehicle, setLocalVehicle] = useState<Partial<Vehicle>>({
       chamberCount: 1,
-      chambers: Array.from({ length: 4 }, (_, i) => ({ id: `CH_NEW_${i}`})),
+      chambers: Array.from({ length: 4 }, (_, i) => ({ id: `CH_NEW_${i}`, referenceDip: 0, productDip: 0})),
       ...vehicle
   });
 
   useEffect(() => {
     // Ensure chambers are initialized if not present
-    const initialChambers = Array.from({ length: 4 }, (_, i) => ({ id: `CH_NEW_${i}`}));
+    const initialChambers = Array.from({ length: 4 }, (_, i) => ({ id: `CH_NEW_${i}`, referenceDip: 0, productDip: 0}));
     setLocalVehicle(v => ({ 
         chamberCount: 1, 
         ...v, 
@@ -119,7 +119,7 @@ export default function VehicleForm({ vehicle, onSave, isDialog = false, onDirty
     onSave(finalVehicleData);
 
     if (!vehicle) { // If creating new, not editing
-        setLocalVehicle({ chamberCount: 1, chambers: Array.from({ length: 4 }, (_, i) => ({ id: `CH_NEW_${i}`})) });
+        setLocalVehicle({ chamberCount: 1, chambers: Array.from({ length: 4 }, (_, i) => ({ id: `CH_NEW_${i}`, referenceDip: 0, productDip: 0})) });
         setFormKey(Date.now());
     }
   };
