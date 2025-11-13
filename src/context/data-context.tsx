@@ -5,12 +5,6 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import type { Driver, Vehicle, Customer, City, Supplier, Trip, Expense, Owner, User, Bill } from "@/lib/types";
 import { supabase } from '@/lib/supabaseClient';
 
-const initialUsers: User[] = [
-    { id: 'U1', username: 'admin', password: '123456', permissions: { dashboard: true, general: true, expenses: true, financials: true, edit: true, admin: true } },
-    { id: 'U2', username: 'manager', password: '222', permissions: { dashboard: true, general: true, expenses: true, financials: true, edit: true, admin: false } },
-    { id: 'U3', username: 'dataentry', password: '333', permissions: { dashboard: false, general: true, expenses: true, financials: false, edit: false, admin: false } },
-];
-
 interface DataContextProps {
     drivers: Driver[];
     setDrivers: React.Dispatch<React.SetStateAction<Driver[]>>;
@@ -45,7 +39,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const [trips, setTrips] = useState<Trip[]>([]);
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [owners, setOwners] = useState<Owner[]>([]);
-    const [users, setUsers] = useState<User[]>(initialUsers);
+    const [users, setUsers] = useState<User[]>([]);
     const [savedBills, setSavedBills] = useState<Bill[]>([]);
 
     useEffect(() => {
@@ -73,6 +67,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
             const { data: owners, error: ownersError } = await supabase.from('owners').select('*');
             if (ownersError) console.error('Error fetching owners:', ownersError); else setOwners(owners as Owner[]);
+
+            const { data: users, error: usersError } = await supabase.from('users').select('*');
+            if (usersError) console.error('Error fetching users:', usersError); else setUsers(users as User[]);
         };
 
         fetchData();
