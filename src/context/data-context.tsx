@@ -22,23 +22,6 @@ const initialUsers: User[] = [
     { id: 'U3', username: 'dataentry', password: '333', permissions: { dashboard: false, general: true, expenses: true, financials: false, edit: false, admin: false } },
 ];
 
-// Helper function to get initial state from localStorage or fallback
-const getInitialState = <T>(key: string, fallback: T): T => {
-    if (typeof window === 'undefined') {
-        return fallback;
-    }
-    try {
-        const item = window.localStorage.getItem(key);
-        // On first load after this change, the fallback (empty array) will be used.
-        // Subsequent loads will use the data from localStorage.
-        return item ? JSON.parse(item) : fallback;
-    } catch (error) {
-        console.warn(`Error reading localStorage key "${key}":`, error);
-        return fallback;
-    }
-};
-
-
 interface DataContextProps {
     drivers: Driver[];
     setDrivers: React.Dispatch<React.SetStateAction<Driver[]>>;
@@ -65,28 +48,16 @@ interface DataContextProps {
 const DataContext = createContext<DataContextProps | undefined>(undefined);
 
 export const DataProvider = ({ children }: { children: ReactNode }) => {
-    const [drivers, setDrivers] = useState<Driver[]>(() => getInitialState('drivers', initialDrivers));
-    const [vehicles, setVehicles] = useState<Vehicle[]>(() => getInitialState('vehicles', initialVehicles));
-    const [customers, setCustomers] = useState<Customer[]>(() => getInitialState('customers', initialCustomers));
-    const [cities, setCities] = useState<City[]>(() => getInitialState('cities', initialCities));
-    const [suppliers, setSuppliers] = useState<Supplier[]>(() => getInitialState('suppliers', initialSuppliers));
-    const [trips, setTrips] = useState<Trip[]>(() => getInitialState('trips', initialTrips));
-    const [expenses, setExpenses] = useState<Expense[]>(() => getInitialState('expenses', initialExpenses));
-    const [owners, setOwners] = useState<Owner[]>(() => getInitialState('owners', initialOwners));
-    const [users, setUsers] = useState<User[]>(() => getInitialState('users', initialUsers));
-    const [savedBills, setSavedBills] = useState<Bill[]>(() => getInitialState('savedBills', []));
-
-    // Effects to persist state to localStorage
-    useEffect(() => { localStorage.setItem('drivers', JSON.stringify(drivers)); }, [drivers]);
-    useEffect(() => { localStorage.setItem('vehicles', JSON.stringify(vehicles)); }, [vehicles]);
-    useEffect(() => { localStorage.setItem('customers', JSON.stringify(customers)); }, [customers]);
-    useEffect(() => { localStorage.setItem('cities', JSON.stringify(cities)); }, [cities]);
-    useEffect(() => { localStorage.setItem('suppliers', JSON.stringify(suppliers)); }, [suppliers]);
-    useEffect(() => { localStorage.setItem('trips', JSON.stringify(trips)); }, [trips]);
-    useEffect(() => { localStorage.setItem('expenses', JSON.stringify(expenses)); }, [expenses]);
-    useEffect(() => { localStorage.setItem('owners', JSON.stringify(owners)); }, [owners]);
-    useEffect(() => { localStorage.setItem('users', JSON.stringify(users)); }, [users]);
-    useEffect(() => { localStorage.setItem('savedBills', JSON.stringify(savedBills)); }, [savedBills]);
+    const [drivers, setDrivers] = useState<Driver[]>(initialDrivers);
+    const [vehicles, setVehicles] = useState<Vehicle[]>(initialVehicles);
+    const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
+    const [cities, setCities] = useState<City[]>(initialCities);
+    const [suppliers, setSuppliers] = useState<Supplier[]>(initialSuppliers);
+    const [trips, setTrips] = useState<Trip[]>(initialTrips);
+    const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
+    const [owners, setOwners] = useState<Owner[]>(initialOwners);
+    const [users, setUsers] = useState<User[]>(initialUsers);
+    const [savedBills, setSavedBills] = useState<Bill[]>([]);
 
     const value = {
         drivers, setDrivers,

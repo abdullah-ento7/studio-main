@@ -19,9 +19,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // On initial load, try to get user from localStorage
   useEffect(() => {
-    const storedUser = localStorage.getItem('loggedInUser');
-    if (storedUser) {
-      setLoggedInUser(JSON.parse(storedUser));
+    if (typeof window !== 'undefined') {
+      const storedUser = localStorage.getItem('loggedInUser');
+      if (storedUser) {
+        setLoggedInUser(JSON.parse(storedUser));
+      }
     }
   }, []);
 
@@ -31,7 +33,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const user = users.find(u => u.username === username && u.password === password);
     if (user) {
       setLoggedInUser(user);
-      localStorage.setItem('loggedInUser', JSON.stringify(user));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('loggedInUser', JSON.stringify(user));
+      }
       return true;
     }
     return false;
@@ -39,7 +43,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = () => {
     setLoggedInUser(null);
-    localStorage.removeItem('loggedInUser');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('loggedInUser');
+    }
   };
 
   const value = {
