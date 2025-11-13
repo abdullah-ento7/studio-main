@@ -36,6 +36,14 @@ interface TripFormProps {
   onCancel?: () => void;
 }
 
+// Define CardWrapper as a proper component
+const CardWrapper = ({ isDialog, children }: { isDialog: boolean, children: React.ReactNode }) => {
+  if (isDialog) {
+    return <div>{children}</div>;
+  }
+  return <Card>{children}</Card>;
+};
+
 export default function TripForm({ trip, onSave, cities, customers, vehicles, isDialog=false, onDirtyChange, onCancel }: TripFormProps) {
   const { toast } = useToast();
   const { loggedInUser } = useAuth();
@@ -137,10 +145,14 @@ export default function TripForm({ trip, onSave, cities, customers, vehicles, is
     const finalShipments: Shipment[] = shipments.map(s => ({
         ...s,
         id: s.id!.startsWith('S_NEW_') ? `S${Date.now()}` : s.id!,
-        fare: s.fare || 0, // ensure fare is a number
+        fare: s.fare || 0,
         fromCityId: s.fromCityId!,
         toCityId: s.toCityId!,
         customerId: s.customerId!,
+        productName: s.productName || '', 
+        quantity: s.quantity || 0, 
+        unit: s.unit || 'Per Ton',
+        ratePerUnit: s.ratePerUnit || 0,
     }));
 
     const route = finalShipments.length > 0 ? [finalShipments[0].fromCityId, ...finalShipments.map(s => s.toCityId)] : [];
@@ -163,10 +175,8 @@ export default function TripForm({ trip, onSave, cities, customers, vehicles, is
     onSave(updatedTrip);
   };
 
-  const CardWrapper = isDialog ? 'div' : Card;
-
   return (
-    <CardWrapper>
+    <CardWrapper isDialog={isDialog}>
         <CardContent className="grid gap-6 pt-6">
             {isOilTanker && (
               <fieldset className="border p-4 rounded-md">

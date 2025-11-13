@@ -124,28 +124,28 @@ export default function TripsTabContent() {
   };
 
   const handleShipmentChange = (customerIndex: number, shipmentTempId: string, field: keyof TempShipment, value: any) => {
-      setCustomerShipments(prev => prev.map((cs, i) => {
-          if (i === customerIndex) {
-              const updatedShipments = cs.shipments.map(s => {
-                  if (s.tempId === shipmentTempId) {
-                      const updatedShipment = { ...s, [field]: value };
-                      // Auto-calculate fare
-                      if (field === 'quantity' || field === 'ratePerUnit') {
-                          const quantity = field === 'quantity' ? parseFloat(value) : updatedShipment.quantity;
-                          const ratePerUnit = field === 'ratePerUnit' ? parseFloat(value) : updatedShipment.ratePerUnit;
-                          if (!isNaN(quantity) && !isNaN(ratePerUnit)) {
-                              updatedShipment.fare = quantity * ratePerUnit;
-                          }
-                      }
-                      return updatedShipment;
-                  }
-                  return s;
-              });
-              return { ...cs, shipments: updatedShipments };
-          }
-          return cs;
-      }));
-  };
+    setCustomerShipments(prev => prev.map((cs, i) => {
+        if (i === customerIndex) {
+            const updatedShipments = cs.shipments.map(s => {
+                if (s.tempId === shipmentTempId) {
+                    const updatedShipment = { ...s, [field]: value };
+                    // Auto-calculate fare
+                    if (field === 'quantity' || field === 'ratePerUnit') {
+                        const quantity = field === 'quantity' ? parseFloat(value) : (updatedShipment.quantity || 0);
+                        const ratePerUnit = field === 'ratePerUnit' ? parseFloat(value) : (updatedShipment.ratePerUnit || 0);
+                        if (!isNaN(quantity) && !isNaN(ratePerUnit)) {
+                            updatedShipment.fare = quantity * ratePerUnit;
+                        }
+                    }
+                    return updatedShipment;
+                }
+                return s;
+            });
+            return { ...cs, shipments: updatedShipments };
+        }
+        return cs;
+    }));
+};
   
   const calculateTotalCustomerFare = (shipments: TempShipment[]): number => {
     return shipments.reduce((total, s) => total + (s.fare || 0), 0);

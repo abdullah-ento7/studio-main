@@ -477,9 +477,9 @@ export default function ExpensesTab() {
                                                                         </div>
                                                                         <div className="flex-grow space-y-2">
                                                                             <Label>Price</Label>
-                                                                            <Input type="number" placeholder="e.g. 1500" value={inst.price} onChange={e => handleInstrumentChange(trip.id, exp.id, 'price', Number(e.target.value))} />
+                                                                            <Input type="number" placeholder="e.g. 1500" value={inst.price} onChange={e => handleInstrumentChange(trip.id, exp.id, inst.id, 'price', Number(e.target.value))} />
                                                                         </div>
-                                                                        {exp.maintenanceDetail.instruments!.length > 1 && <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveInstrument(trip.id, exp.id, inst.id)}><Trash2 className="h-4 w-4 text-destructive"/></Button>}
+                                                                        {(exp.maintenanceDetail?.instruments?.length || 0) > 1 && <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveInstrument(trip.id, exp.id, inst.id)}><Trash2 className="h-4 w-4 text-destructive"/></Button>}
                                                                     </div>
                                                                 ))}
                                                                 <Button type="button" variant="outline" size="sm" onClick={() => handleAddInstrument(trip.id, exp.id)}><PlusCircle className="mr-2"/>Add Instrument</Button>
