@@ -64,7 +64,18 @@ export default function TripForm({ trip, onSave, cities, customers, vehicles, is
     setOrderNumber(trip.orderNumber || '');
     setSapNumber(trip.sapNumber || '');
     setTokenNumber(trip.tokenNumber || '');
-  }, [trip]);
+    
+    if (vehicle && vehicle.tokenExpiry) {
+        const tokenExpiryDate = new Date(vehicle.tokenExpiry);
+        if (tokenExpiryDate < new Date()) {
+            toast({
+                title: 'Warning: Vehicle Token Expired',
+                description: `The token for vehicle ${vehicle.registrationNumber} expired on ${tokenExpiryDate.toLocaleDateString()}.`,
+                variant: 'destructive',
+            });
+        }
+    }
+}, [trip, vehicle, toast]);
 
   const handleDirty = () => {
     if (onDirtyChange) {
