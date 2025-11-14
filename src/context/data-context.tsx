@@ -77,6 +77,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                     id: '0',
                     username: 'adminr',
                     password: '123456',
+                    status: 'approved',
                     permissions: {
                         dashboard: true,
                         general: true,
