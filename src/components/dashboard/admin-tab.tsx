@@ -27,7 +27,7 @@ import {
   DialogFooter
 } from '@/components/ui/dialog';
 import { Save, Trash2, UserPlus, Copy, Edit, RotateCw } from 'lucide-react';
-import { DataTable } from './data-table'; // Assuming you have a generic DataTable component
+import DataTable from './data-table'; // Assuming you have a generic DataTable component
 import { ColumnDef } from '@tanstack/react-table';
 
 export default function AdminTab() {
