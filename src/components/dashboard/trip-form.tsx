@@ -46,7 +46,7 @@ const CardWrapper = ({ isDialog, children }: { isDialog: boolean, children: Reac
 
 export default function TripForm({ trip, onSave, cities, customers, vehicles, isDialog=false, onDirtyChange, onCancel }: TripFormProps) {
   const { toast } = useToast();
-  const { loggedInUser } = useAuth();
+  const { user: loggedInUser } = useAuth();
   
   const [shipments, setShipments] = useState<Partial<Shipment>[]>(trip.shipments);
   

@@ -33,7 +33,7 @@ import { ColumnDef } from '@tanstack/react-table';
 export default function AdminTab() {
   const dataContext = useData();
   const authContext = useAuth();
-  const { loggedInUser } = useAuth();
+  const { user: loggedInUser } = useAuth();
 
   if (!dataContext || !authContext) {
     return <div>Loading...</div>;
