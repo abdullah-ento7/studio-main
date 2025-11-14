@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import DataTable from "./data-table"
 import type { Driver, Vehicle, Customer, City, Supplier, Trip, Owner, Expense } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast"
-import { User, Truck, Building, MapPin, Briefcase, GanttChartSquare, Users, Building2, Package, Pin, UserSquare, CreditCard, Search, Pencil, Trash2, PlusCircle } from 'lucide-react';
+import { User, Truck, Building, MapPin, Briefcase, GanttChartSquare, Users, Building2, Package, Pin, UserSquare, CreditCard, Search, Pencil, Trash2, PlusCircle, MoreHorizontal } from 'lucide-react';
 import EditDialog from "./edit-dialog";
 import DriverForm from "./driver-form";
 import VehicleForm from "./vehicle-form";
@@ -26,6 +26,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
+import { ColumnDef } from "@tanstack/react-table";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
 
 
 type DataType = 'driver' | 'vehicle' | 'customer' | 'city' | 'supplier' | 'trip' | 'owner' | 'expense';
@@ -168,48 +170,77 @@ export default function EditTab() {
         setIsAddVehicleDialogOpen(false);
     }
 
-    const ownerColumns = [
-        { accessor: 'name' as const, header: 'Name' },
-        { accessor: 'contact' as const, header: 'Contact' },
-        { accessor: 'cnic' as const, header: 'CNIC' },
-    ]
+    const genericColumns = <T extends {id: string}>(onEdit: (item: T) => void, onDelete: (item: T) => void): ColumnDef<T>[] => [
+        {
+            id: 'actions',
+            cell: ({ row }) => (
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem onClick={() => onEdit(row.original)}>Edit</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => onDelete(row.original)} className="text-destructive">Delete</DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            )
+        }
+    ];
 
-    const driverColumns = [
-        { accessor: 'name' as const, header: 'Name' },
-        { accessor: 'contact' as const, header: 'Contact' },
-        { accessor: 'licenseNumber' as const, header: 'License No.' },
-        { accessor: 'status' as const, header: 'Status' },
+    const ownerColumns: ColumnDef<Owner>[] = [
+        { accessorKey: 'name', header: 'Name' },
+        { accessorKey: 'contact', header: 'Contact' },
+        { accessorKey: 'cnic', header: 'CNIC' },
+        ...genericColumns<Owner>((item) => handleEdit(item, 'owner'), (item) => handleDelete(item, 'owners')),
+    ];
+
+    const driverColumns: ColumnDef<Driver>[] = [
+        { accessorKey: 'name', header: 'Name' },
+        { accessorKey: 'contact', header: 'Contact' },
+        { accessorKey: 'licenseNumber', header: 'License No.' },
+        { accessorKey: 'status', header: 'Status' },
+        ...genericColumns<Driver>((item) => handleEdit(item, 'driver'), (item) => handleDelete(item, 'drivers')),
     ];
     
-    const vehicleColumns = [
-        { accessor: 'registrationNumber' as const, header: 'Reg. Number' },
-        { accessor: 'model' as const, header: 'Model' },
-        { accessor: 'type' as const, header: 'Type' },
-        { accessor: 'status' as const, header: 'Status' },
+    const vehicleColumns: ColumnDef<Vehicle>[] = [
+        { accessorKey: 'registrationNumber', header: 'Reg. Number' },
+        { accessorKey: 'model', header: 'Model' },
+        { accessorKey: 'type', header: 'Type' },
+        { accessorKey: 'status', header: 'Status' },
+        ...genericColumns<Vehicle>((item) => handleEdit(item, 'vehicle'), (item) => handleDelete(item, 'vehicles')),
     ];
     
-    const customerColumns = [
-        { accessor: 'name' as const, header: 'Name' },
-        { accessor: 'contact' as const, header: 'Contact' },
-        { accessor: 'address' as const, header: 'Address' },
+    const customerColumns: ColumnDef<Customer>[] = [
+        { accessorKey: 'name', header: 'Name' },
+        { accessorKey: 'contact', header: 'Contact' },
+        { accessorKey: 'address', header: 'Address' },
+        ...genericColumns<Customer>((item) => handleEdit(item, 'customer'), (item) => handleDelete(item, 'customers')),
     ];
 
-    const cityColumns = [
-        { accessor: 'name' as const, header: 'City Name' },
+    const cityColumns: ColumnDef<City>[] = [
+        { accessorKey: 'name', header: 'City Name' },
+        ...genericColumns<City>((item) => handleEdit(item, 'city'), (item) => handleDelete(item, 'cities')),
     ];
 
-    const supplierColumns = [
-        { accessor: 'name' as const, header: 'Name' },
-        { accessor: 'contact' as const, header: 'Contact' },
-        { accessor: 'service' as const, header: 'Service' , render: (services: string[]) => services.join(', ')},
+    const supplierColumns: ColumnDef<Supplier>[] = [
+        { accessorKey: 'name', header: 'Name' },
+        { accessorKey: 'contact', header: 'Contact' },
+        { accessorKey: 'service', header: 'Service' , cell: ({ row }) => row.original.service.join(', ')},
+        ...genericColumns<Supplier>((item) => handleEdit(item, 'supplier'), (item) => handleDelete(item, 'suppliers')),
     ];
 
-    const tripColumns = [
-      { accessor: 'id' as const, header: 'Trip ID' },
-      { accessor: 'vehicleReg' as const, header: 'Vehicle' },
-      { accessor: 'driverName' as const, header: 'Driver' },
-      { accessor: 'routeName' as const, header: 'Route' },
-      { accessor: 'status' as const, header: 'Status' },
+    const tripColumns: ColumnDef<Trip>[] = [
+      { accessorKey: 'id', header: 'Trip ID' },
+      { accessorKey: 'vehicleReg', header: 'Vehicle' },
+      { accessorKey: 'driverName', header: 'Driver' },
+      { accessorKey: 'routeName', header: 'Route' },
+      { accessorKey: 'status', header: 'Status' },
+      ...genericColumns<Trip>((item) => handleEdit(item, 'trip'), (item) => handleDelete(item, 'trips')),
     ];
     
     const filteredDrivers = drivers.filter(d => 
@@ -326,7 +357,7 @@ export default function EditTab() {
                             onChange={(e) => setDriverSearch(e.target.value)}
                         />
                     </div>
-                    <DataTable columns={driverColumns} data={filteredDrivers} onEdit={(item) => handleEdit(item, 'driver')} onDelete={(item) => handleDelete(item, 'drivers')} />
+                    <DataTable columns={driverColumns} data={filteredDrivers} />
                 </CardContent>
             </Card>
           </TabsContent>
@@ -353,7 +384,7 @@ export default function EditTab() {
                                     onChange={(e) => setCustomerSearch(e.target.value)}
                                 />
                             </div>
-                            <DataTable columns={customerColumns} data={filteredCustomers} onEdit={(item) => handleEdit(item, 'customer')} onDelete={(item) => handleDelete(item, 'customers')} />
+                            <DataTable columns={customerColumns} data={filteredCustomers} />
                         </TabsContent>
                         <TabsContent value="suppliers" className="mt-4 space-y-4">
                              <div className="relative">
@@ -365,7 +396,7 @@ export default function EditTab() {
                                     onChange={(e) => setSupplierSearch(e.target.value)}
                                 />
                             </div>
-                            <DataTable columns={supplierColumns} data={filteredSuppliers} onEdit={(item) => handleEdit(item, 'supplier')} onDelete={(item) => handleDelete(item, 'suppliers')} />
+                            <DataTable columns={supplierColumns} data={filteredSuppliers} />
                         </TabsContent>
                     </Tabs>
                 </CardContent>
@@ -437,8 +468,6 @@ export default function EditTab() {
                                 <DataTable 
                                     columns={vehicleColumns} 
                                     data={filteredVehicles} 
-                                    onEdit={(item) => handleEdit(item, 'vehicle')} 
-                                    onDelete={(item) => handleDelete(item, 'vehicles')} 
                                 />
                             </CardContent>
                         </Card>
@@ -470,7 +499,7 @@ export default function EditTab() {
                                     onChange={(e) => setTripSearch(e.target.value)}
                                 />
                             </div>
-                            <DataTable columns={tripColumns} data={filteredTrips} onEdit={(item) => handleEdit(item, 'trip')} onDelete={(item) => handleDelete(item, 'trips')} />
+                            <DataTable columns={tripColumns} data={filteredTrips} />
                         </TabsContent>
                         <TabsContent value="expenses" className="mt-4 space-y-4">
                             <div className="relative">
@@ -570,7 +599,7 @@ export default function EditTab() {
                                     onChange={(e) => setCitySearch(e.target.value)}
                                 />
                             </div>
-                            <DataTable columns={cityColumns} data={filteredCities} onEdit={(item) => handleEdit(item, 'city')} onDelete={(item) => handleDelete(item, 'cities')} />
+                            <DataTable columns={cityColumns} data={filteredCities} />
                         </TabsContent>
                     </Tabs>
                 </CardContent>
