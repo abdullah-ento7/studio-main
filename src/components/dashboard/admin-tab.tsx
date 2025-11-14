@@ -60,6 +60,7 @@ export default function AdminTab() {
       id: `U${Date.now()}`,
       username: newUsername,
       password: password,
+      role: 'user',
       permissions: { 
         dashboard: true,
         general: true,
