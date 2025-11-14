@@ -1,5 +1,4 @@
 
-
 export type Driver = {
   id: string;
   name: string;
@@ -274,6 +273,7 @@ export type User = {
     reports?: boolean;
     billing?: boolean;
     admin?: boolean;
+    edit?: boolean; // <-- This line was added
     vehicles?: boolean;
     drivers?: boolean;
     customers?: boolean;
