@@ -31,9 +31,8 @@ export default function CreateAccountPage() {
     if (success) {
       toast({
         title: 'Account Created',
-        description: `Welcome, ${username}! Please log in.`,
+        description: `Your account for ${username} has been created and is pending approval.`,
       });
-      router.push('/login');
     } else {
       toast({
         title: 'Account Creation Failed',
