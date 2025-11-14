@@ -26,6 +26,7 @@ interface DataContextProps {
     setUsers: React.Dispatch<React.SetStateAction<User[]>>;
     savedBills: Bill[];
     setSavedBills: React.Dispatch<React.SetStateAction<Bill[]>>;
+    refreshUsers: () => Promise<void>;
 }
 
 const DataContext = createContext<DataContextProps | undefined>(undefined);
@@ -41,6 +42,15 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const [owners, setOwners] = useState<Owner[]>([]);
     const [users, setUsers] = useState<User[]>([]);
     const [savedBills, setSavedBills] = useState<Bill[]>([]);
+
+    const refreshUsers = async () => {
+        const { data: usersData, error: usersError } = await supabase.from('users').select('*');
+        if (usersError) {
+            console.error('Error fetching users:', usersError);
+        } else {
+            setUsers(usersData as User[]);
+        }
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -68,27 +78,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             const { data: owners, error: ownersError } = await supabase.from('owners').select('*');
             if (ownersError) console.error('Error fetching owners:', ownersError); else setOwners(owners as Owner[]);
 
-            const { data: usersData, error: usersError } = await supabase.from('users').select('*');
-            if (usersError) {
-                console.error('Error fetching users:', usersError);
-                setUsers([]);
-            } else {
-                const adminUser: User = {
-                    id: '0',
-                    username: 'adminr',
-                    password: '123456',
-                    status: 'approved',
-                    permissions: {
-                        dashboard: true,
-                        general: true,
-                        expenses: true,
-                        financials: true,
-                        edit: true,
-                        admin: true,
-                    },
-                };
-                setUsers([...(usersData as User[]), adminUser]);
-            }
+            await refreshUsers();
         };
 
         fetchData();
@@ -105,6 +95,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         owners, setOwners,
         users, setUsers,
         savedBills, setSavedBills,
+        refreshUsers,
     };
 
     return (

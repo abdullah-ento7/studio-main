@@ -2,14 +2,15 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { supabase } from '@/lib/supabaseClient';
 import type { User } from '@/lib/types';
 import { useData } from './data-context';
 
 interface AuthContextProps {
   loggedInUser: User | null;
-  login: (username: string, password: string) => boolean;
+  login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
-  createAccount: (username: string, password: string) => boolean;
+  createAccount: (username: string, password: string) => Promise<boolean>;
   approveUser: (username: string) => void;
   rejectUser: (username: string) => void;
 }
@@ -20,73 +21,124 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loggedInUser, setLoggedInUser] = useState<User | null>(null);
   const dataContext = useData();
 
-  // On initial load, try to get user from localStorage
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedUser = localStorage.getItem('loggedInUser');
-      if (storedUser) {
-        setLoggedInUser(JSON.parse(storedUser));
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && dataContext) {
+        const { users } = dataContext;
+        const user = users.find(u => u.id === session.user.id);
+        if (user) {
+          setLoggedInUser(user);
+        }
       }
-    }
-  }, []);
+    };
+    getSession();
 
-  const login = (username: string, password: string): boolean => {
-    if (!dataContext) return false;
-    const { users } = dataContext;
-    const user = users.find(u => u.username === username && u.password === password);
-    if (user && user.status === 'approved') {
-      setLoggedInUser(user);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('loggedInUser', JSON.stringify(user));
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session && dataContext) {
+        const { users } = dataContext;
+        const user = users.find(u => u.id === session.user.id);
+        if (user) {
+          setLoggedInUser(user);
+        }
       }
-      return true;
+      if (event === 'SIGNED_OUT') {
+        setLoggedInUser(null);
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [dataContext]);
+
+  const login = async (username: string, password: string): Promise<boolean> => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: username,
+      password: password,
+    });
+
+    if (error || !data.user) {
+      console.error('Error logging in:', error?.message);
+      return false;
+    }
+    if (dataContext){
+        const { users } = dataContext;
+        const user = users.find(u => u.id === data.user.id);
+        if (user && user.status === 'approved') {
+            setLoggedInUser(user);
+            return true
+        }
     }
     return false;
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut();
     setLoggedInUser(null);
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('loggedInUser');
-    }
   };
 
-  const createAccount = (username: string, password: string): boolean => {
+  const createAccount = async (username: string, password: string): Promise<boolean> => {
     if (!dataContext) return false;
-    const { users, setUsers } = dataContext;
-    if (users.find(u => u.username === username)) {
-      return false; // Username already exists
+
+    const { data, error } = await supabase.auth.signUp({
+        email: username,
+        password: password,
+        options: {
+            data: {
+                permissions: {
+                    dashboard: true,
+                    general: true,
+                    expenses: true,
+                    financials: true,
+                    edit: true,
+                    admin: false,
+                },
+                status: 'pending',
+            }
+        }
+    });
+
+    if (error) {
+        console.error('Error creating account:', error.message);
+        return false;
     }
 
-    const newUser: User = {
-      id: new Date().toISOString(), // Not a great ID, but works for this
-      username,
-      password,
-      permissions: {
-        dashboard: true,
-        general: true,
-        expenses: true,
-        financials: true,
-        edit: true,
-        admin: users.length === 0, // First user is admin
-      },
-      status: users.length === 0 ? 'approved' : 'pending',
-    };
+    if (data.user) {
+        // Refresh users
+        await dataContext.refreshUsers();
+    }
 
-    setUsers([...users, newUser]);
     return true;
   };
 
-  const approveUser = (username: string) => {
+  const approveUser = async (username: string) => {
     if (!dataContext) return;
     const { users, setUsers } = dataContext;
+    const userToApprove = users.find(u => u.username === username);
+    if (!userToApprove) return;
+
+    const { error } = await supabase.from('users').update({ status: 'approved' }).eq('id', userToApprove.id);
+    if (error) {
+        console.error('Error approving user:', error.message);
+        return;
+    }
     const updatedUsers = users.map(u => u.username === username ? { ...u, status: 'approved' as const } : u);
     setUsers(updatedUsers);
   };
 
-  const rejectUser = (username: string) => {
+  const rejectUser = async (username: string) => {
     if (!dataContext) return;
     const { users, setUsers } = dataContext;
+    const userToReject = users.find(u => u.username === username);
+    if (!userToReject) return;
+    
+    const { error } = await supabase.from('users').update({ status: 'rejected' }).eq('id', userToReject.id);
+    if (error) {
+        console.error('Error rejecting user:', error.message);
+        return;
+    }
+
     const updatedUsers = users.map(u => u.username === username ? { ...u, status: 'rejected' as const } : u);
     setUsers(updatedUsers);
   };

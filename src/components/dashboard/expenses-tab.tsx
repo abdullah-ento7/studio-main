@@ -266,10 +266,10 @@ export default function ExpensesTab() {
     const dateStr = selectedDate.toLocaleDateString('en-CA');
     
     setExpenses(prev => {
-        const otherExpenses = prev.filter(e => 
-            new Date(e.date).toLocaleDateString('en-CA') !== dateStr || !selectedTripIds.includes(e.tripId)
-        );
-        return [...otherExpenses, ...newExpenses];
+        const otherExpenses = prev.filter(e => new Date(e.date).toLocaleDateString('en-CA') !== dateStr);
+        const expensesForDay = prev.filter(e => new Date(e.date).toLocaleDateString('en-CA') === dateStr);
+        const otherTripExpensesForDay = expensesForDay.filter(e => !selectedTripIds.includes(e.tripId));
+        return [...otherExpenses, ...otherTripExpensesForDay, ...newExpenses];
     });
 
     toast({
