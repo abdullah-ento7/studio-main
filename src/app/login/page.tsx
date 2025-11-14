@@ -26,8 +26,8 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleLogin = () => {
-    const success = login(username, password);
+  const handleLogin = async () => {
+    const success = await login(username, password);
     if (success) {
       toast({
         title: 'Login Successful',
