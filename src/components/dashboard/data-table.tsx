@@ -1,5 +1,17 @@
-
 'use client';
+
+import * as React from 'react';
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+  SortingState,
+  getSortedRowModel,
+  ColumnFiltersState,
+  getFilteredRowModel,
+  getPaginationRowModel,
+} from '@tanstack/react-table';
 
 import {
   Table,
@@ -9,86 +21,116 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-  } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal } from 'lucide-react';
-import { Button } from '../ui/button';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
-interface Column<T> {
-  accessor: keyof T;
-  header: string;
-  render?: (value: any) => React.ReactNode;
+interface DataTableProps<TData, TValue> {
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+  filterColumn?: keyof TData;
 }
 
-interface DataTableProps<T> {
-  columns: Column<T>[];
-  data: T[];
-  onEdit?: (item: T) => void;
-  onDelete?: (item: T) => void;
-}
-
-export default function DataTable<T extends { id: string }>({
+export default function DataTable<TData, TValue>({
   columns,
   data,
-  onEdit,
-  onDelete,
-}: DataTableProps<T>) {
-  const showActions = onEdit || onDelete;
+  filterColumn
+}: DataTableProps<TData, TValue>) {
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
+    onColumnFiltersChange: setColumnFilters,
+    getFilteredRowModel: getFilteredRowModel(),
+    state: {
+      sorting,
+      columnFilters,
+    },
+  });
+
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            {columns.map((column, index) => (
-              <TableHead key={index}>{column.header}</TableHead>
-            ))}
-            {showActions && <TableHead className="text-right">Actions</TableHead>}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.length > 0 ? (
-            data.map((row) => (
-              <TableRow key={row.id}>
-                {columns.map((column, index) => (
-                  <TableCell key={index}>
-                    {column.render ? column.render(row[column.accessor]) : String(row[column.accessor])}
-                  </TableCell>
-                ))}
-                {showActions && (
-                  <TableCell className="text-right">
-                      <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                              <span className="sr-only">Open menu</span>
-                              <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              {onEdit && <DropdownMenuItem onClick={() => onEdit(row)}>Edit</DropdownMenuItem>}
-                              {onDelete && <DropdownMenuSeparator />}
-                              {onDelete && <DropdownMenuItem className="text-destructive" onClick={() => onDelete(row)}>Delete</DropdownMenuItem>}
-                          </DropdownMenuContent>
-                      </DropdownMenu>
-                  </TableCell>
-                )}
+    <div>
+        {filterColumn && (
+             <div className="flex items-center py-4">
+                <Input
+                placeholder={`Filter by ${String(filterColumn)}...`}
+                value={(table.getColumn(filterColumn as string)?.getFilterValue() as string) ?? ""}
+                onChange={(event) =>
+                    table.getColumn(filterColumn as string)?.setFilterValue(event.target.value)
+                }
+                className="max-w-sm"
+                />
+            </div>
+        )}
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  );
+                })}
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length + (showActions ? 1 : 0)} className="h-24 text-center">
-                No results.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && 'selected'}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      <div className="flex items-center justify-end space-x-2 py-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => table.previousPage()}
+          disabled={!table.getCanPreviousPage()}
+        >
+          Previous
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => table.nextPage()}
+          disabled={!table.getCanNextPage()}
+        >
+          Next
+        </Button>
+      </div>
     </div>
   );
 }
