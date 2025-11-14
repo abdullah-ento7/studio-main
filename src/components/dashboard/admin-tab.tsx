@@ -40,7 +40,7 @@ export default function AdminTab() {
   }
 
   const { users, setUsers } = dataContext;
-  const { approveUser, rejectUser } = authContext;
+  const { updateUserStatus } = authContext;
 
   const [newUsername, setNewUsername] = useState('');
   const [newlyCreatedUser, setNewlyCreatedUser] = useState<User | null>(null);
@@ -139,8 +139,8 @@ export default function AdminTab() {
                 <div key={user.id} className="flex items-center justify-between p-2 rounded-md border">
                   <span>{user.username}</span>
                   <div className="space-x-2">
-                    <Button size="sm" onClick={() => approveUser(user.username)}>Approve</Button>
-                    <Button size="sm" variant="destructive" onClick={() => rejectUser(user.username)}>Reject</Button>
+                    <Button size="sm" onClick={() => updateUserStatus(user.id, 'approved')}>Approve</Button>
+                    <Button size="sm" variant="destructive" onClick={() => updateUserStatus(user.id, 'rejected')}>Reject</Button>
                   </div>
                 </div>
               ))}
