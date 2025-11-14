@@ -9,6 +9,7 @@ import {
   Briefcase,
   Home,
   UserCog,
+  CheckSquare
 } from 'lucide-react';
 import Header from './header';
 import GeneralTab from './general-tab';
@@ -17,6 +18,7 @@ import EditTab from './edit-tab';
 import FinancialsTab from './financials-tab';
 import DashboardTab from './dashboard-tab';
 import AdminTab from './admin-tab';
+import ApprovalsTab from './approvals-tab';
 import { useAuth } from '@/context/auth-context';
 
 export default function MainLayout() {
@@ -75,10 +77,16 @@ export default function MainLayout() {
                 </TabsTrigger>
             )}
             {permissions.admin && (
-                <TabsTrigger value="admin">
-                    <UserCog className="mr-2" />
-                    Admin
-                </TabsTrigger>
+                <>
+                    <TabsTrigger value="admin">
+                        <UserCog className="mr-2" />
+                        Admin
+                    </TabsTrigger>
+                    <TabsTrigger value="approvals">
+                        <CheckSquare className="mr-2" />
+                        Approvals
+                    </TabsTrigger>
+                </>
             )}
           </TabsList>
           
@@ -108,9 +116,14 @@ export default function MainLayout() {
             </TabsContent>
           )}
           {permissions.admin && (
-            <TabsContent value="admin" className="mt-4">
-                <AdminTab />
-            </TabsContent>
+            <>
+                <TabsContent value="admin" className="mt-4">
+                    <AdminTab />
+                </TabsContent>
+                <TabsContent value="approvals" className="mt-4">
+                    <ApprovalsTab />
+                </TabsContent>
+            </>
           )}
         </Tabs>
       </main>

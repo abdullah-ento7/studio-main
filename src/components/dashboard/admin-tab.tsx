@@ -23,9 +23,12 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription
+  DialogDescription,
+  DialogFooter
 } from '@/components/ui/dialog';
 import { Save, Trash2, UserPlus, Copy, Edit, RotateCw } from 'lucide-react';
+import { DataTable } from './data-table'; // Assuming you have a generic DataTable component
+import { ColumnDef } from '@tanstack/react-table';
 
 export default function AdminTab() {
   const dataContext = useData();
@@ -39,45 +42,25 @@ export default function AdminTab() {
   const { users, setUsers } = dataContext;
   const { approveUser, rejectUser } = authContext;
 
-  const [editableUsers, setEditableUsers] = useState<User[]>(users);
   const [newUsername, setNewUsername] = useState('');
   const [newlyCreatedUser, setNewlyCreatedUser] = useState<User | null>(null);
-
-  const handlePermissionChange = (username: string, permission: string, value: boolean) => {
-    if (permission === 'admin' && value) {
-      const adminExists = editableUsers.some(u => u.permissions.admin);
-      if (adminExists) {
-        toast({
-          title: 'Admin Limit Reached',
-          description: 'Only one admin account is allowed.',
-          variant: 'destructive',
-        });
-        return;
-      }
-    }
-    setEditableUsers(editableUsers.map(u => 
-      u.username === username 
-        ? { ...u, permissions: { ...u.permissions, [permission]: value } } 
-        : u
-    ));
-  };
-
-  const handleSaveChanges = () => {
-    setUsers(editableUsers);
-    toast({ title: 'Changes Saved', description: 'User permissions have been updated.' });
-  };
+  const [editingUser, setEditingUser] = useState<User | null>(null);
 
   const handleCreateUser = () => {
     if (!newUsername) {
       toast({ title: 'Error', description: 'Please enter a username.', variant: 'destructive' });
       return;
     }
+    if (users.find(u => u.username === newUsername)) {
+        toast({ title: 'Error', description: 'Username already exists.', variant: 'destructive' });
+        return;
+    }
     const password = Math.random().toString(36).slice(-8);
     const newUser: User = {
       id: `U${Date.now()}`,
       username: newUsername,
       password: password,
-      permissions: { // Default permissions for a new user
+      permissions: { 
         dashboard: true,
         general: true,
         expenses: false,
@@ -90,11 +73,57 @@ export default function AdminTab() {
 
     setUsers(prev => [...prev, newUser]);
     setNewUsername('');
-    setNewlyCreatedUser(newUser); // Show the dialog with credentials
+    setNewlyCreatedUser(newUser);
+  };
+  
+  const handleUpdateUser = () => {
+    if (!editingUser) return;
+
+    // Prevent removing the last admin
+    if (editingUser.permissions.admin === false) {
+        const adminCount = users.filter(u => u.permissions.admin).length;
+        if (adminCount === 1 && users.find(u => u.id === editingUser.id)?.permissions.admin) {
+            toast({ title: 'Cannot Remove Last Admin', description: 'There must be at least one admin user.', variant: 'destructive'});
+            return;
+        }
+    }
+
+    setUsers(users.map(u => u.id === editingUser.id ? editingUser : u));
+    toast({ title: 'User Updated', description: 'User details have been saved.' });
+    setEditingUser(null);
+  };
+
+  const handleDeleteUser = (userId: string) => {
+    const userToDelete = users.find(u => u.id === userId);
+    if (userToDelete?.permissions.admin) {
+        const adminCount = users.filter(u => u.permissions.admin).length;
+        if (adminCount <= 1) {
+            toast({ title: 'Cannot Delete Last Admin', description: 'You cannot delete the only admin account.', variant: 'destructive' });
+            return;
+        }
+    }
+    setUsers(users.filter(u => u.id !== userId));
+    toast({ title: 'User Deleted', description: 'The user account has been deleted.' });
   };
 
   const pendingUsers = useMemo(() => users.filter(u => u.status === 'pending'), [users]);
-  const approvedUsers = useMemo(() => users.filter(u => u.status === 'approved' && u.username !== loggedInUser?.username), [users, loggedInUser]);
+  
+  const userColumns: ColumnDef<User>[] = [
+    { accessorKey: 'username', header: 'Username' },
+    { accessorKey: 'status', header: 'Status' },
+    {
+        id: 'actions',
+        cell: ({ row }) => {
+            const user = row.original;
+            return (
+                <div className="space-x-2 text-right">
+                    <Button size="sm" variant="outline" onClick={() => setEditingUser(user)}><Edit className="h-4 w-4" /></Button>
+                    <Button size="sm" variant="destructive" onClick={() => handleDeleteUser(user.id)}><Trash2 className="h-4 w-4" /></Button>
+                </div>
+            );
+        }
+    }
+  ];
 
   return (
     <div className="space-y-6">
@@ -131,6 +160,7 @@ export default function AdminTab() {
               placeholder="Enter new username"
               value={newUsername}
               onChange={(e) => setNewUsername(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleCreateUser()}
             />
             <Button onClick={handleCreateUser}>
               <UserPlus className="mr-2 h-4 w-4" /> Create User
@@ -141,41 +171,12 @@ export default function AdminTab() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Manage User Permissions</CardTitle>
-          <CardDescription>Toggle permissions for each user.</CardDescription>
+          <CardTitle>Manage Users</CardTitle>
+          <CardDescription>Edit user details, permissions, and status.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {approvedUsers.map(user => (
-              <details key={user.id} className="group">
-                <summary className="flex items-center justify-between p-2 rounded-md border cursor-pointer">
-                  <span className='font-medium'>{user.username}</span>
-                  <Edit className='h-4 w-4 text-muted-foreground' />
-                </summary>
-                <div className="p-4 mt-2 border rounded-md">
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {Object.keys(user.permissions).map(key => (
-                      <div key={key} className="flex items-center space-x-2">
-                        <Switch
-                          id={`${user.username}-${key}`}
-                          checked={user.permissions[key as keyof User['permissions']]}
-                          onCheckedChange={(value) => handlePermissionChange(user.username, key, value)}
-                        />
-                        <Label htmlFor={`${user.username}-${key}`} className="capitalize">{key}</Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </details>
-            ))}
-          </div>
+            <DataTable columns={userColumns} data={users.filter(u => u.status !== 'pending' && u.username !== loggedInUser?.username)} />
         </CardContent>
-        <CardFooter>
-            <Button className='ml-auto' onClick={handleSaveChanges}>
-                <Save className='mr-2' />
-                Save Changes
-            </Button>
-        </CardFooter>
       </Card>
       
       {newlyCreatedUser && (
@@ -199,6 +200,48 @@ export default function AdminTab() {
                         <Button size='sm' onClick={() => navigator.clipboard.writeText(newlyCreatedUser.password)}><Copy className='h-4 w-4' /></Button>
                     </div>
                 </div>
+            </DialogContent>
+        </Dialog>
+      )}
+
+      {editingUser && (
+        <Dialog open={!!editingUser} onOpenChange={() => setEditingUser(null)}>
+            <DialogContent className="sm:max-w-[600px]">
+                <DialogHeader>
+                    <DialogTitle>Edit User: {editingUser.username}</DialogTitle>
+                    <DialogDescription>Modify the user's details and permissions below.</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="username-edit" className="text-right">Username</Label>
+                        <Input id="username-edit" value={editingUser.username} onChange={(e) => setEditingUser({...editingUser, username: e.target.value})} className="col-span-3" />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="password-edit" className="text-right">Password</Label>
+                        <Input id="password-edit" value={editingUser.password} onChange={(e) => setEditingUser({...editingUser, password: e.target.value})} className="col-span-3" />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                       <Label className="text-right">Permissions</Label>
+                       <div className="col-span-3 grid grid-cols-2 gap-4 rounded-lg border p-4">
+                        {Object.keys(editingUser.permissions).map(key => (
+                            <div key={key} className="flex items-center space-x-2">
+                                <Switch
+                                id={`${editingUser.username}-${key}-edit`}
+                                checked={editingUser.permissions[key as keyof User['permissions']]}
+                                onCheckedChange={(value) => {
+                                    const newPermissions = { ...editingUser.permissions, [key]: value };
+                                    setEditingUser({ ...editingUser, permissions: newPermissions });
+                                }}
+                                />
+                                <Label htmlFor={`${editingUser.username}-${key}-edit`} className="capitalize">{key}</Label>
+                            </div>
+                        ))}
+                       </div>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button onClick={handleUpdateUser}><Save className='mr-2' /> Save Changes</Button>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
       )}
