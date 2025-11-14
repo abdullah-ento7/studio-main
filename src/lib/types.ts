@@ -263,15 +263,7 @@ export type ShipmentUnit = (typeof shipmentUnits)[number];
 export type User = {
   id: string;
   username: string;
-  password: string;
-  permissions: {
-    dashboard: boolean;
-    general: boolean;
-    expenses: boolean;
-    financials: boolean;
-    edit: boolean;
-    admin: boolean;
-  };
+  role: 'admin' | 'user';
   status: 'pending' | 'approved' | 'rejected';
 };
 
