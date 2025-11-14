@@ -44,6 +44,17 @@ export default function AdminTab() {
   const [newlyCreatedUser, setNewlyCreatedUser] = useState<User | null>(null);
 
   const handlePermissionChange = (username: string, permission: string, value: boolean) => {
+    if (permission === 'admin' && value) {
+      const adminExists = editableUsers.some(u => u.permissions.admin);
+      if (adminExists) {
+        toast({
+          title: 'Admin Limit Reached',
+          description: 'Only one admin account is allowed.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
     setEditableUsers(editableUsers.map(u => 
       u.username === username 
         ? { ...u, permissions: { ...u.permissions, [permission]: value } } 
