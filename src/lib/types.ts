@@ -265,6 +265,25 @@ export type User = {
   username: string;
   role: 'admin' | 'user';
   status: 'pending' | 'approved' | 'rejected';
+  password?: string;
+  permissions?: {
+    dashboard?: boolean;
+    general?: boolean;
+    financials?: boolean;
+    approvals?: boolean;
+    reports?: boolean;
+    billing?: boolean;
+    admin?: boolean;
+    vehicles?: boolean;
+    drivers?: boolean;
+    customers?: boolean;
+    suppliers?: boolean;
+    owners?: boolean;
+    trips?: boolean;
+    expenses?: boolean;
+    accounts?: boolean;
+    cities?: boolean;
+  }
 };
 
 export interface Bill {
