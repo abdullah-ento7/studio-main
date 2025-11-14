@@ -20,24 +20,24 @@ import { Logo } from '@/components/icons';
 import Link from 'next/link';
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { login } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
   const handleLogin = async () => {
-    const success = await login(username, password);
+    const success = await login(email, password);
     if (success) {
       toast({
         title: 'Login Successful',
-        description: `Welcome back, ${username}!`,
+        description: `Welcome back, ${email}!`,
       });
       router.push('/');
     } else {
       toast({
         title: 'Login Failed',
-        description: 'Invalid username or password.',
+        description: 'Invalid email or password.',
         variant: 'destructive',
       });
     }
@@ -56,14 +56,14 @@ export default function LoginPage() {
         <CardContent>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
-                id="username"
-                type="text"
-                placeholder="Enter your username"
+                id="email"
+                type="email"
+                placeholder="Enter your email"
                 required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div className="space-y-2">
