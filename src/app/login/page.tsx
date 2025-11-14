@@ -92,7 +92,7 @@ export default function LoginPage() {
         </Link>
       </div>
       <div className="mt-8 text-center text-sm text-muted-foreground">
-        © {new Date().getFullYear()} <a href="https://www.jtn.pcom.pk" target="_blank" rel="noopener noreferrer" className="hover:text-primary">Jugnoo Transport Network</a>
+        © {new Date().getFullYear()} <a href="https://jtn.com.pk" target="_blank" rel="noopener noreferrer" className="hover:text-primary">Jugnoo Transport Network</a>
       </div>
     </div>
   );
