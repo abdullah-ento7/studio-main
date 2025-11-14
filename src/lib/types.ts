@@ -272,6 +272,7 @@ export type User = {
     edit: boolean;
     admin: boolean;
   };
+  status: 'pending' | 'approved' | 'rejected';
 };
 
 export interface Bill {

@@ -9,7 +9,6 @@ import {
   Briefcase,
   Home,
   UserCog,
-  CheckSquare,
 } from 'lucide-react';
 import Header from './header';
 import GeneralTab from './general-tab';
@@ -18,29 +17,25 @@ import EditTab from './edit-tab';
 import FinancialsTab from './financials-tab';
 import DashboardTab from './dashboard-tab';
 import AdminTab from './admin-tab';
-import ApprovalsTab from './approvals-tab';
 import { useAuth } from '@/context/auth-context';
 
 export default function MainLayout() {
     const { loggedInUser } = useAuth();
 
     if (!loggedInUser) {
-        // This should ideally not happen if the page is protected, but it's a good safeguard.
         return null; 
     }
 
     const { permissions } = loggedInUser;
     
-    // Determine the default tab based on the first available permission
     const getDefaultTab = () => {
         if (permissions.dashboard) return 'dashboard';
         if (permissions.general) return 'general';
         if (permissions.expenses) return 'expenses';
         if (permissions.financials) return 'financials';
         if (permissions.edit) return 'edit';
-        if (permissions.admin) return 'approvals';
         if (permissions.admin) return 'admin';
-        return ''; // Should have a fallback if no permissions
+        return '';
     }
 
   return (
@@ -80,12 +75,6 @@ export default function MainLayout() {
                 </TabsTrigger>
             )}
             {permissions.admin && (
-                <TabsTrigger value="approvals">
-                    <CheckSquare className="mr-2" />
-                    Approvals
-                </TabsTrigger>
-            )}
-            {permissions.admin && (
                 <TabsTrigger value="admin">
                     <UserCog className="mr-2" />
                     Admin
@@ -116,11 +105,6 @@ export default function MainLayout() {
           {permissions.edit && (
             <TabsContent value="edit" className="mt-4">
                 <EditTab />
-            </TabsContent>
-          )}
-          {permissions.admin && (
-            <TabsContent value="approvals" className="mt-4">
-                <ApprovalsTab />
             </TabsContent>
           )}
           {permissions.admin && (

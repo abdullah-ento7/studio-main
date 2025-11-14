@@ -19,25 +19,25 @@ import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/icons';
 import Link from 'next/link';
 
-export default function LoginPage() {
+export default function CreateAccountPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const { login } = useAuth();
+  const { createAccount } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleLogin = () => {
-    const success = login(username, password);
+  const handleCreateAccount = () => {
+    const success = createAccount(username, password);
     if (success) {
       toast({
-        title: 'Login Successful',
-        description: `Welcome back, ${username}!`,
+        title: 'Account Created',
+        description: `Welcome, ${username}! Please log in.`,
       });
-      router.push('/');
+      router.push('/login');
     } else {
       toast({
-        title: 'Login Failed',
-        description: 'Invalid username or password.',
+        title: 'Account Creation Failed',
+        description: 'Username already exists.',
         variant: 'destructive',
       });
     }
@@ -50,8 +50,8 @@ export default function LoginPage() {
             <div className="flex justify-center items-center mb-4">
               <Logo className="h-16 w-auto text-primary" />
             </div>
-          <CardTitle className="text-3xl font-bold">Sign In</CardTitle>
-          <CardDescription>Enter your credentials to access the dashboard</CardDescription>
+          <CardTitle className="text-3xl font-bold">Create Account</CardTitle>
+          <CardDescription>Create a new account</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -75,20 +75,20 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                onKeyDown={(e) => e.key === 'Enter' && handleCreateAccount()}
               />
             </div>
           </div>
         </CardContent>
         <CardFooter>
-          <Button className="w-full" onClick={handleLogin}>
-            Sign In
+          <Button className="w-full" onClick={handleCreateAccount}>
+            Create Account
           </Button>
         </CardFooter>
       </Card>
       <div className="mt-4 text-center text-sm">
-        <Link href="/create-account" className="text-muted-foreground hover:text-primary">
-            Don't have an account? Create one
+        <Link href="/login" className="text-muted-foreground hover:text-primary">
+            Already have an account? Sign in
         </Link>
       </div>
       <div className="mt-8 text-center text-sm text-muted-foreground">

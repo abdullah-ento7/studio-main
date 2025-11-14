@@ -9,6 +9,9 @@ interface AuthContextProps {
   loggedInUser: User | null;
   login: (username: string, password: string) => boolean;
   logout: () => void;
+  createAccount: (username: string, password: string) => boolean;
+  approveUser: (username: string) => void;
+  rejectUser: (username: string) => void;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -31,7 +34,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!dataContext) return false;
     const { users } = dataContext;
     const user = users.find(u => u.username === username && u.password === password);
-    if (user) {
+    if (user && user.status === 'approved') {
       setLoggedInUser(user);
       if (typeof window !== 'undefined') {
         localStorage.setItem('loggedInUser', JSON.stringify(user));
@@ -48,10 +51,53 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const createAccount = (username: string, password: string): boolean => {
+    if (!dataContext) return false;
+    const { users, setUsers } = dataContext;
+    if (users.find(u => u.username === username)) {
+      return false; // Username already exists
+    }
+
+    const newUser: User = {
+      id: new Date().toISOString(), // Not a great ID, but works for this
+      username,
+      password,
+      permissions: {
+        dashboard: true,
+        general: true,
+        expenses: true,
+        financials: true,
+        edit: true,
+        admin: users.length === 0, // First user is admin
+      },
+      status: users.length === 0 ? 'approved' : 'pending',
+    };
+
+    setUsers([...users, newUser]);
+    return true;
+  };
+
+  const approveUser = (username: string) => {
+    if (!dataContext) return;
+    const { users, setUsers } = dataContext;
+    const updatedUsers = users.map(u => u.username === username ? { ...u, status: 'approved' } : u);
+    setUsers(updatedUsers);
+  };
+
+  const rejectUser = (username: string) => {
+    if (!dataContext) return;
+    const { users, setUsers } = dataContext;
+    const updatedUsers = users.map(u => u.username === username ? { ...u, status: 'rejected' } : u);
+    setUsers(updatedUsers);
+  };
+
   const value = {
     loggedInUser,
     login,
     logout,
+    createAccount,
+    approveUser,
+    rejectUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
