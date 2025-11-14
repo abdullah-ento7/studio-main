@@ -5,16 +5,16 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 export default function Home() {
-  const { loggedInUser } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loggedInUser) {
+    if (!user) {
       router.push('/login');
     }
-  }, [loggedInUser, router]);
+  }, [user, router]);
 
-  if (!loggedInUser) {
+  if (!user) {
     // You can render a loading spinner here
     return (
       <div className="flex h-screen items-center justify-center">
