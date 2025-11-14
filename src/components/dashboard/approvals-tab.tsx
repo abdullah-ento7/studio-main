@@ -5,7 +5,7 @@ import React from 'react';
 import { useData } from '@/context/data-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { DataTable } from './data-table';
+import DataTable from './data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Expense } from '@/lib/types';
 import { ArrowUpDown, Check, X } from 'lucide-react';
