@@ -80,14 +80,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const approveUser = (username: string) => {
     if (!dataContext) return;
     const { users, setUsers } = dataContext;
-    const updatedUsers = users.map(u => u.username === username ? { ...u, status: 'approved' } : u);
+    const updatedUsers = users.map(u => u.username === username ? { ...u, status: 'approved' as const } : u);
     setUsers(updatedUsers);
   };
 
   const rejectUser = (username: string) => {
     if (!dataContext) return;
     const { users, setUsers } = dataContext;
-    const updatedUsers = users.map(u => u.username === username ? { ...u, status: 'rejected' } : u);
+    const updatedUsers = users.map(u => u.username === username ? { ...u, status: 'rejected' as const } : u);
     setUsers(updatedUsers);
   };
 
