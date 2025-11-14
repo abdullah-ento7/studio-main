@@ -26,8 +26,8 @@ export default function CreateAccountPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleCreateAccount = () => {
-    const success = createAccount(username, password);
+  const handleCreateAccount = async () => {
+    const success = await createAccount(username, password);
     if (success) {
       toast({
         title: 'Account Created',
