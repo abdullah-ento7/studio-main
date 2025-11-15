@@ -34,7 +34,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Function to fetch the user profile from your 'users' table
   const fetchUserProfile = async (userId: string) => {
     const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
     if (error) {
@@ -63,10 +62,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (userProfile && userProfile.status === 'approved') {
           setUser(userProfile);
           if (event === 'INITIAL_SESSION') {
-            fetchUsers(); // Also fetch users on initial session
+            fetchUsers();
           }
         } else {
-          setUser(null); // User is not approved or doesn't exist
+          setUser(null);
         }
       } else {
         setUser(null);
@@ -79,8 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = async (username: string, password: string): Promise<boolean> => {
-    // We use a dummy email since Supabase Auth requires it
-    const email = `${username}@jtn.com.pk`; 
+    const email = `${username}@jtn.com.pk`;
     const { data, error } = await supabase.auth.signInWithPassword({
       email: email,
       password: password,
@@ -91,22 +89,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       toast({ title: 'Login Failed', description: 'Invalid username or password.', variant: 'destructive' });
       return false;
     }
-    
+
     const userProfile = await fetchUserProfile(data.user.id);
 
-    if (userProfile && userProfile.status === 'approved') {
+    if (userProfile) {
+      if (userProfile.status === 'approved') {
         setUser(userProfile);
         toast({ title: 'Login Successful', description: `Welcome back, ${userProfile.username}!` });
         return true;
-    }
-    
-    if (userProfile && userProfile.status === 'pending') {
-      toast({ title: 'Login Failed', description: 'Your account is pending approval.', variant: 'destructive' });
-    } else if (!userProfile) {
-       toast({ title: 'Login Failed', description: 'User profile not found.', variant: 'destructive' });
+      }
+      if (userProfile.status === 'pending') {
+        toast({ title: 'Login Failed', description: 'Your account is pending approval.', variant: 'destructive' });
+      } else {
+        toast({ title: 'Login Failed', description: `Your account is currently ${userProfile.status}. Contact an admin.`, variant: 'destructive' });
+      }
+    } else {
+      toast({ title: 'Login Failed', description: 'User profile not found. Please contact an administrator.', variant: 'destructive' });
     }
 
-    // Sign out if login is not fully successful
     await supabase.auth.signOut();
     return false;
   };
@@ -120,7 +120,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const createAccount = async (username: string, password: string): Promise<boolean> => {
     const email = `${username}@jtn.com.pk`;
 
-    // Check if a user with the same username already exists
     const { data: existingUsers, error: existingUserError } = await supabase
       .from('users')
       .select('username')
@@ -128,7 +127,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     if (existingUserError) {
       console.error('Error checking for existing users:', existingUserError.message);
-      toast({ title: 'Account Creation Failed', description: 'An unexpected error occurred.', variant: 'destructive' });
+      toast({ title: 'Account Creation Failed', description: 'An unexpected error occurred while checking username.', variant: 'destructive' });
       return false;
     }
 
@@ -136,62 +135,59 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       toast({ title: 'Account Creation Failed', description: 'Username is already taken.', variant: 'destructive' });
       return false;
     }
-    
-    // Check if there are any users in the database
+
     const { data: allUsers, error: allUsersError } = await supabase.from('users').select('id');
     if (allUsersError) {
-        console.error('Error fetching user count:', allUsersError.message);
-        toast({ title: 'Account Creation Failed', description: 'An unexpected error occurred.', variant: 'destructive' });
-        return false;
+      console.error('Error fetching user count:', allUsersError.message);
+      toast({ title: 'Account Creation Failed', description: 'An unexpected error occurred while setting up account type.', variant: 'destructive' });
+      return false;
     }
 
     const isFirstUser = allUsers.length === 0;
     const userRole = isFirstUser ? 'admin' : 'user';
     const userStatus = isFirstUser ? 'approved' : 'pending';
 
-    // 2. Sign up the new user
     const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: email,
-        password: password,
+      email: email,
+      password: password,
     });
 
     if (authError) {
-        console.error('Error creating auth user:', authError.message);
-        toast({ title: 'Account Creation Failed', description: authError.message, variant: 'destructive' });
-        return false;
+      console.error('Error creating auth user:', authError.message);
+      toast({ title: 'Account Creation Failed', description: authError.message, variant: 'destructive' });
+      return false;
     }
     if (!authData.user) {
-        console.error('No user returned after sign up');
-        toast({ title: 'Account Creation Failed', description: 'Could not create user.', variant: 'destructive' });
-        return false;
+      console.error('No user returned after sign up');
+      toast({ title: 'Account Creation Failed', description: 'Could not create user account.', variant: 'destructive' });
+      return false;
     }
-    
-    // 3. Insert into public.users table
+
     const { error: userError } = await supabase
-        .from('users')
-        .insert([
-            {
-                id: authData.user.id, // Use the ID from the auth user
-                username: username,
-                role: userRole,
-                status: userStatus,
-                permissions: { 
-                  dashboard: true, general: true, financials: false, reports: false, 
-                  billing: false, edit: false, expenses: false, trips: false, admin: userRole === 'admin' 
-                },
-            },
-        ]);
+      .from('users')
+      .insert([
+        {
+          id: authData.user.id,
+          username: username,
+          role: userRole,
+          status: userStatus,
+          permissions: {
+            dashboard: true, general: true, financials: false, reports: false,
+            billing: false, edit: false, expenses: false, trips: false, admin: userRole === 'admin'
+          },
+        },
+      ]);
 
     if (userError) {
-        console.error('Error creating user profile:', userError.message);
-        toast({ title: 'Account Creation Failed', description: userError.message, variant: 'destructive' });
-        // Optional: Clean up the created auth.user if the profile insertion fails
-        // await supabase.auth.api.deleteUser(authData.user.id);
-        return false;
+      console.error('Error creating user profile:', userError.message);
+      toast({ title: 'Account Creation Failed', description: `Server error creating profile: ${userError.message}`, variant: 'destructive' });
+      // Important: Since we can't easily delete the auth user from client-side,
+      // this will result in an "orphaned" auth user. The improved login flow will handle guiding the user.
+      return false;
     }
 
-    fetchUsers(); // Refresh the local user list
-    toast({ title: 'Account Created', description: isFirstUser ? 'Your admin account has been created.' : 'Your account is pending approval.' });
+    fetchUsers();
+    toast({ title: 'Account Created', description: isFirstUser ? 'Your admin account has been created and approved.' : 'Your account has been created and is pending approval.' });
     return true;
   };
 
@@ -199,10 +195,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { error } = await supabase.from('users').update({ status }).eq('id', userId);
     if (error) {
       console.error(`Error updating user status to ${status}:`, error);
-      toast({ title: 'Error', description: 'Failed to update user status.', variant: 'destructive'});
+      toast({ title: 'Error', description: 'Failed to update user status.', variant: 'destructive' });
     } else {
-      fetchUsers(); 
-      toast({ title: 'Success', description: `User status updated to ${status}.`});
+      fetchUsers();
+      toast({ title: 'Success', description: `User status updated to ${status}.` });
     }
   };
 
@@ -210,11 +206,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { id, ...updateData } = user;
     const { error } = await supabase.from('users').update(updateData).eq('id', id);
     if (error) {
-        console.error('Error updating user:', error);
-        toast({ title: 'Update Failed', description: 'Could not save user changes.', variant: 'destructive'});
+      console.error('Error updating user:', error);
+      toast({ title: 'Update Failed', description: 'Could not save user changes.', variant: 'destructive' });
     } else {
-        toast({ title: 'User Updated', description: 'User details have been saved successfully.' });
-        fetchUsers();
+      toast({ title: 'User Updated', description: 'User details have been saved successfully.' });
+      fetchUsers();
     }
   }
 
