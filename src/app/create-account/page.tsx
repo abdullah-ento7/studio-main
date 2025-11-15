@@ -22,26 +22,56 @@ import Link from 'next/link';
 export default function CreateAccountPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const { createAccount } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
   const handleCreateAccount = async () => {
+    if (!username || !password) {
+        toast({
+            title: 'Missing Information',
+            description: 'Please enter both a username and a password.',
+            variant: 'destructive',
+        });
+        return;
+    }
+
     const success = await createAccount(username, password);
     if (success) {
-      toast({
-        title: 'Account Created',
-        description: `Your account for ${username} has been created and is pending approval.`,
-      });
-      router.push('/login');
+      setIsSubmitted(true);
     } else {
       toast({
         title: 'Account Creation Failed',
-        description: 'Username already exists.',
+        description: 'Username might already exist or there was a server error.',
         variant: 'destructive',
       });
     }
   };
+  
+  if (isSubmitted) {
+    return (
+        <div className="flex min-h-screen flex-col items-center justify-center bg-muted/40">
+            <Card className="w-full max-w-sm text-center">
+                <CardHeader>
+                    <div className="flex justify-center items-center mb-4">
+                      <Logo className="h-16 w-auto text-primary" />
+                    </div>
+                    <CardTitle className="text-3xl font-bold">Request Sent</CardTitle>
+                    <CardDescription>Your account request has been sent to the admin for approval.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <p className='text-muted-foreground'>You will be notified once your account is approved. You can then log in.</p>
+                </CardContent>
+                <CardFooter className="flex-col items-center gap-4">
+                    <Button className="w-full" onClick={() => router.push('/login')}>
+                        Back to Login
+                    </Button>
+                </CardFooter>
+            </Card>
+        </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-muted/40">
@@ -51,7 +81,7 @@ export default function CreateAccountPage() {
               <Logo className="h-16 w-auto text-primary" />
             </div>
           <CardTitle className="text-3xl font-bold">Create Account</CardTitle>
-          <CardDescription>Create a new account</CardDescription>
+          <CardDescription>Request a new account from the administrator.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -60,7 +90,7 @@ export default function CreateAccountPage() {
               <Input
                 id="username"
                 type="text"
-                placeholder="Enter your username"
+                placeholder="Enter your desired username"
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -71,7 +101,7 @@ export default function CreateAccountPage() {
               <Input
                 id="password"
                 type="password"
-                placeholder="Enter your password"
+                placeholder="Create a strong password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -87,7 +117,7 @@ export default function CreateAccountPage() {
                 </Link>
             </div>
             <Button className="w-full" onClick={handleCreateAccount}>
-                Create Account
+                Request Account
             </Button>
         </CardFooter>
       </Card>

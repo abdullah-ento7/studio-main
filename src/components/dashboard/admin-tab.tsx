@@ -17,7 +17,7 @@ import { User } from '@/lib/types';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
   DialogContent,
@@ -26,9 +26,10 @@ import {
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog';
-import { Save, Trash2, UserPlus, Copy, Edit, RotateCw } from 'lucide-react';
-import DataTable from './data-table'; // Assuming you have a generic DataTable component
+import { Save, Trash2, UserPlus, Copy, Edit, Check, X, Users } from 'lucide-react';
+import DataTable from './data-table';
 import { ColumnDef } from '@tanstack/react-table';
+import { Badge } from '../ui/badge';
 
 export default function AdminTab() {
   const dataContext = useData();
@@ -40,11 +41,12 @@ export default function AdminTab() {
   }
 
   const { users, setUsers } = dataContext;
-  const { updateUserStatus } = authContext;
+  const { updateUserStatus, updateUser } = authContext;
 
   const [newUsername, setNewUsername] = useState('');
   const [newlyCreatedUser, setNewlyCreatedUser] = useState<User | null>(null);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const { toast } = useToast();
 
   const handleCreateUser = () => {
     if (!newUsername) {
@@ -64,17 +66,20 @@ export default function AdminTab() {
       permissions: { 
         dashboard: true,
         general: true,
-        expenses: false,
-        financials: false,
-        edit: false,
-        admin: false,
+        financials: true,
+        reports: true,
+        billing: true,
+        edit: true,
+        expenses: true,
+        trips: true,
       },
-      status: 'approved',
+      status: 'approved', // Admin-created users are pre-approved
     };
 
     setUsers(prev => [...prev, newUser]);
     setNewUsername('');
     setNewlyCreatedUser(newUser);
+    toast({ title: 'User Created', description: 'A new user has been created with a temporary password.'});
   };
   
   const handleUpdateUser = () => {
@@ -82,36 +87,41 @@ export default function AdminTab() {
 
     // Prevent removing the last admin
     if (editingUser.permissions?.admin === false) {
-        const adminCount = users.filter(u => u.permissions?.admin).length;
-        if (adminCount === 1 && users.find(u => u.id === editingUser.id)?.permissions?.admin) {
+        const adminCount = users.filter(u => u.permissions?.admin && u.status === 'approved').length;
+        if (adminCount <= 1 && users.find(u => u.id === editingUser.id)?.permissions?.admin) {
             toast({ title: 'Cannot Remove Last Admin', description: 'There must be at least one admin user.', variant: 'destructive'});
             return;
         }
     }
 
-    setUsers(users.map(u => u.id === editingUser.id ? editingUser : u));
-    toast({ title: 'User Updated', description: 'User details have been saved.' });
+    updateUser(editingUser);
     setEditingUser(null);
   };
 
   const handleDeleteUser = (userId: string) => {
     const userToDelete = users.find(u => u.id === userId);
     if (userToDelete?.permissions?.admin) {
-        const adminCount = users.filter(u => u.permissions?.admin).length;
+        const adminCount = users.filter(u => u.permissions?.admin && u.status === 'approved').length;
         if (adminCount <= 1) {
             toast({ title: 'Cannot Delete Last Admin', description: 'You cannot delete the only admin account.', variant: 'destructive' });
             return;
         }
     }
-    setUsers(users.filter(u => u.id !== userId));
-    toast({ title: 'User Deleted', description: 'The user account has been deleted.' });
+    // Instead of deleting, we can set the status to 'rejected' or a new 'deleted' status
+    updateUserStatus(userId, 'rejected');
+    toast({ title: 'User Disabled', description: 'The user account has been disabled.' });
   };
 
   const pendingUsers = useMemo(() => users.filter(u => u.status === 'pending'), [users]);
-  
+  const approvedUsers = useMemo(() => users.filter(u => u.status === 'approved' && u.id !== loggedInUser?.id), [users, loggedInUser]);
+
   const userColumns: ColumnDef<User>[] = [
     { accessorKey: 'username', header: 'Username' },
-    { accessorKey: 'status', header: 'Status' },
+    {
+        accessorKey: 'role',
+        header: 'Role',
+        cell: ({ row }) => <span className="capitalize">{row.original.role}</span>
+    },
     {
         id: 'actions',
         cell: ({ row }) => {
@@ -125,60 +135,72 @@ export default function AdminTab() {
         }
     }
   ];
+  
+  const pendingUserColumns: ColumnDef<User>[] = [
+    { accessorKey: 'username', header: 'Username' },
+    {
+        id: 'actions',
+        header: 'Actions',
+        cell: ({ row }) => {
+            const user = row.original;
+            return (
+                <div className="space-x-2 text-right">
+                    <Button size="sm" variant='ghost' onClick={() => updateUserStatus(user.id, 'approved')}><Check className="h-4 w-4 text-green-500" /></Button>
+                    <Button size="sm" variant="ghost" onClick={() => updateUserStatus(user.id, 'rejected')}><X className="h-4 w-4 text-red-500"/></Button>
+                </div>
+            );
+        }
+    }
+  ];
 
   return (
     <div className="space-y-6">
-      {pendingUsers.length > 0 && (
+        
+      <div className='grid lg:grid-cols-2 gap-6'>
         <Card>
-          <CardHeader>
-            <CardTitle>Pending Approvals</CardTitle>
-            <CardDescription>Review and approve or reject new user requests.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {pendingUsers.map(user => (
-                <div key={user.id} className="flex items-center justify-between p-2 rounded-md border">
-                  <span>{user.username}</span>
-                  <div className="space-x-2">
-                    <Button size="sm" onClick={() => updateUserStatus(user.id, 'approved')}>Approve</Button>
-                    <Button size="sm" variant="destructive" onClick={() => updateUserStatus(user.id, 'rejected')}>Reject</Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
+            <CardHeader>
+            <CardTitle className='flex items-center'><Users className='mr-2'/> Active Users</CardTitle>
+            <CardDescription>Edit user details, permissions, and status for approved accounts.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <DataTable columns={userColumns} data={approvedUsers} />
+            </CardContent>
         </Card>
-      )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Create New User</CardTitle>
-          <CardDescription>Create a new user account and set their initial password.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-2">
-            <Input
-              placeholder="Enter new username"
-              value={newUsername}
-              onChange={(e) => setNewUsername(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleCreateUser()}
-            />
-            <Button onClick={handleCreateUser}>
-              <UserPlus className="mr-2 h-4 w-4" /> Create User
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+        <div className='flex flex-col gap-6'>
+            {pendingUsers.length > 0 && (
+            <Card>
+                <CardHeader>
+                <CardTitle>Pending Approvals</CardTitle>
+                <CardDescription>Review and approve or reject new user requests.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <DataTable columns={pendingUserColumns} data={pendingUsers} />
+                </CardContent>
+            </Card>
+            )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Manage Users</CardTitle>
-          <CardDescription>Edit user details, permissions, and status.</CardDescription>
-        </CardHeader>
-        <CardContent>
-            <DataTable columns={userColumns} data={users.filter(u => u.status !== 'pending' && u.username !== loggedInUser?.username)} />
-        </CardContent>
-      </Card>
+            <Card>
+                <CardHeader>
+                <CardTitle>Create New User</CardTitle>
+                <CardDescription>Create a new pre-approved user account with a temporary password.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                <div className="flex items-center space-x-2">
+                    <Input
+                    placeholder="Enter new username"
+                    value={newUsername}
+                    onChange={(e) => setNewUsername(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleCreateUser()}
+                    />
+                    <Button onClick={handleCreateUser}>
+                    <UserPlus className="mr-2 h-4 w-4" /> Create User
+                    </Button>
+                </div>
+                </CardContent>
+            </Card>
+        </div>
+      </div>
       
       {newlyCreatedUser && (
         <Dialog open={!!newlyCreatedUser} onOpenChange={() => setNewlyCreatedUser(null)}>
@@ -193,12 +215,12 @@ export default function AdminTab() {
                     <div className='flex items-center gap-4'>
                         <Label htmlFor='new-username' className='w-24'>Username</Label>
                         <Input id='new-username' value={newlyCreatedUser.username} readOnly />
-                        <Button size='sm' onClick={() => navigator.clipboard.writeText(newlyCreatedUser.username || '')}><Copy className='h-4 w-4' /></Button>
+                        <Button size='sm' variant='ghost' onClick={() => navigator.clipboard.writeText(newlyCreatedUser.username || '')}><Copy className='h-4 w-4' /></Button>
                     </div>
                     <div className='flex items-center gap-4'>
                         <Label htmlFor='new-password-display' className='w-24'>Password</Label>
                         <Input id='new-password-display' value={newlyCreatedUser.password} readOnly />
-                        <Button size='sm' onClick={() => navigator.clipboard.writeText(newlyCreatedUser.password || '')}><Copy className='h-4 w-4' /></Button>
+                        <Button size='sm' variant='ghost' onClick={() => navigator.clipboard.writeText(newlyCreatedUser.password || '')}><Copy className='h-4 w-4' /></Button>
                     </div>
                 </div>
             </DialogContent>
@@ -210,28 +232,39 @@ export default function AdminTab() {
             <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
                     <DialogTitle>Edit User: {editingUser.username}</DialogTitle>
-                    <DialogDescription>Modify the user's details and permissions below.</DialogDescription>
+                    <DialogDescription>Modify the user's role and permissions.</DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
+                <div className="grid gap-6 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="username-edit" className="text-right">Username</Label>
-                        <Input id="username-edit" value={editingUser.username} onChange={(e) => setEditingUser({...editingUser, username: e.target.value})} className="col-span-3" />
+                        <Input id="username-edit" value={editingUser.username} readOnly disabled className="col-span-3" />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="password-edit" className="text-right">Password</Label>
-                        <Input id="password-edit" value={editingUser.password} onChange={(e) => setEditingUser({...editingUser, password: e.target.value})} className="col-span-3" />
+                        <Label className="text-right">Role</Label>
+                         <div className="col-span-3 flex items-center space-x-2">
+                            <Switch
+                                id={`${editingUser.username}-role-edit`}
+                                checked={editingUser.role === 'admin'}
+                                onCheckedChange={(value) => {
+                                    const newRole = value ? 'admin' : 'user';
+                                    const newPermissions = { ...(editingUser.permissions || {}), admin: value };
+                                    setEditingUser({ ...editingUser, role: newRole, permissions: newPermissions });
+                                }}
+                            />
+                            <Label htmlFor={`${editingUser.username}-role-edit`} className="capitalize">
+                                {editingUser.role === 'admin' ? 'Admin' : 'User'}
+                            </Label>
+                        </div>
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                        <Label className="text-right">Permissions</Label>
                        <div className="col-span-3 grid grid-cols-2 gap-4 rounded-lg border p-4">
-                        {Object.keys(editingUser.permissions ?? {}).map(key => (
+                        {Object.keys(editingUser.permissions ?? {}).filter(k => k !== 'admin').map(key => (
                             <div key={key} className="flex items-center space-x-2">
                                 <Switch
                                 id={`${editingUser.username}-${key}-edit`}
-                                // FIX 1: Use optional chaining (?.) in case permissions is undefined
                                 checked={editingUser.permissions?.[key as keyof User['permissions']]}
                                 onCheckedChange={(value) => {
-                                    // FIX 2: Use nullish coalescing (??) to provide a default empty object
                                     const newPermissions = { ...(editingUser.permissions ?? {}), [key]: value };
                                     setEditingUser({ ...editingUser, permissions: newPermissions });
                                 }}

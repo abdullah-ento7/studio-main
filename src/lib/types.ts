@@ -203,7 +203,7 @@ export type Trip = {
   route: string[];
   customerNames: string[];
   startDate: string;
-  endDate?: string;
+endDate?: string;
   endCityId?: string;
   status: 'saved' | 'pending' | 'active' | 'completed' | 'cancelled';
   shipments: Shipment[];
@@ -303,4 +303,7 @@ export interface Bill {
     status: 'Paid' | 'Unpaid' | 'Partial';
     generatedBy: string;
     generationDate: Date;
+    approvalStatus: 'pending' | 'approved' | 'rejected';
+    approvedBy?: string;
 }
+
