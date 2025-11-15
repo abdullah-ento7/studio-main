@@ -53,7 +53,7 @@ export default function CompleteTripDialog({
   const [isDirty, setIsDirty] = useState(false);
   const [isDiscardAlertOpen, setIsDiscardAlertOpen] = useState(false);
   
-  const isAdmin = loggedInUser?.permissions.admin;
+  const isAdmin = loggedInUser?.permissions?.admin;
 
   const handleDirty = () => setIsDirty(true);
 
