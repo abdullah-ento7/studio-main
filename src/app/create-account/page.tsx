@@ -33,6 +33,7 @@ export default function CreateAccountPage() {
         title: 'Account Created',
         description: `Your account for ${username} has been created and is pending approval.`,
       });
+      router.push('/login');
     } else {
       toast({
         title: 'Account Creation Failed',
