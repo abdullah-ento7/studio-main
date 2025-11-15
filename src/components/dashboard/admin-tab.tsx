@@ -96,8 +96,8 @@ export default function AdminTab() {
 
   const handleDeleteUser = (userId: string) => {
     const userToDelete = users.find(u => u.id === userId);
-    if (userToDelete?.permissions.admin) {
-        const adminCount = users.filter(u => u.permissions.admin).length;
+    if (userToDelete?.permissions?.admin) {
+        const adminCount = users.filter(u => u.permissions?.admin).length;
         if (adminCount <= 1) {
             toast({ title: 'Cannot Delete Last Admin', description: 'You cannot delete the only admin account.', variant: 'destructive' });
             return;
