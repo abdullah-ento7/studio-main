@@ -1,4 +1,20 @@
 
+-- Function to copy new user to public users table
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.users (id, email, role, status)
+  VALUES (new.id, new.email, new.raw_user_meta_data->>'role', new.raw_user_meta_data->>'status');
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger to call the function on new user signup
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
 -- Enable Row Level Security (RLS) for all tables
 ALTER TABLE "users" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "drivers" ENABLE ROW LEVEL SECURITY;
@@ -11,6 +27,8 @@ ALTER TABLE "expenses" ENABLE ROW LEVEL SECURITY;
 
 -- Drop existing policies to avoid conflicts
 DROP POLICY IF EXISTS "Enable read access for all users" ON "users";
+DROP POLICY IF EXISTS "Enable read access for authenticated users" ON "users";
+DROP POLICY IF EXISTS "Allow admin to update user status" ON "users";
 DROP POLICY IF EXISTS "Enable all access for authenticated users" ON "drivers";
 DROP POLICY IF EXISTS "Enable all access for authenticated users" ON "vehicles";
 DROP POLICY IF EXISTS "Enable all access for authenticated users" ON "customers";
@@ -20,9 +38,14 @@ DROP POLICY IF EXISTS "Enable all access for authenticated users" ON "trips";
 DROP POLICY IF EXISTS "Enable all access for authenticated users" ON "expenses";
 
 -- Create policies for "users"
-CREATE POLICY "Enable read access for all users" ON "users"
+CREATE POLICY "Enable read access for authenticated users" ON "users"
     FOR SELECT
-    USING (true);
+    USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Allow admin to update user status" ON "users"
+    FOR UPDATE
+    USING ( (SELECT role FROM public.users WHERE id = auth.uid()) = 'admin' )
+    WITH CHECK ( (SELECT role FROM public.users WHERE id = auth.uid()) = 'admin' );
 
 -- Create policies for other tables to only allow access to authenticated users
 CREATE POLICY "Enable all access for authenticated users" ON "drivers"
