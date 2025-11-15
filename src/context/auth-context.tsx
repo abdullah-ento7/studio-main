@@ -7,6 +7,7 @@ import type { User } from '@/lib/types';
 
 interface AuthContextProps {
   user: User | null;
+  loggedInUser: User | null;
   users: User[];
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
@@ -51,7 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setUser(data);
         }
       }
-      if (event === 'SIGNED_out') {
+      if (event === 'SIGNED_OUT') {
         setUser(null);
       }
     });
@@ -135,6 +136,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const value = {
     user,
+    loggedInUser: user,
     users,
     login,
     logout,
