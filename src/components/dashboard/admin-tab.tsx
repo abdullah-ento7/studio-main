@@ -73,7 +73,7 @@ export default function AdminTab() {
         expenses: true,
         trips: true,
       },
-      status: loggedInUser.permissions?.admin ? 'approved' : 'pending',
+      status: loggedInUser?.permissions?.admin ? 'approved' : 'pending',
     };
 
     setUsers(prev => [...prev, newUser]);
@@ -146,7 +146,7 @@ export default function AdminTab() {
             return (
                 <div className="space-x-2 text-right">
                     <Button size="sm" variant='ghost' onClick={() => updateUserStatus(user.id, 'approved')}><Check className="h-4 w-4 text-green-500" /></Button>
-                    <Button size="sm" variant="ghost" onClick={() => updateUserStatus(user.id, 'rejected')}><X className="h-4 w-4 text-red-500" /></Button>
+                    <Button size="sm" variant="ghost" onClick={() => updateUserStatus(user.id, 'rejected')}><X className="h-4 w-4 text-red-500"/></Button>
                 </div>
             );
         }
