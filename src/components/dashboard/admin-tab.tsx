@@ -228,9 +228,11 @@ export default function AdminTab() {
                             <div key={key} className="flex items-center space-x-2">
                                 <Switch
                                 id={`${editingUser.username}-${key}-edit`}
-                                checked={editingUser.permissions[key as keyof User['permissions']]}
+                                // FIX 1: Use optional chaining (?.) in case permissions is undefined
+                                checked={editingUser.permissions?.[key as keyof User['permissions']]}
                                 onCheckedChange={(value) => {
-                                    const newPermissions = { ...editingUser.permissions, [key]: value };
+                                    // FIX 2: Use nullish coalescing (??) to provide a default empty object
+                                    const newPermissions = { ...(editingUser.permissions ?? {}), [key]: value };
                                     setEditingUser({ ...editingUser, permissions: newPermissions });
                                 }}
                                 />
