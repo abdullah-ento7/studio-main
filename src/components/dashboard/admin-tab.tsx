@@ -193,12 +193,12 @@ export default function AdminTab() {
                     <div className='flex items-center gap-4'>
                         <Label htmlFor='new-username' className='w-24'>Username</Label>
                         <Input id='new-username' value={newlyCreatedUser.username} readOnly />
-                        <Button size='sm' onClick={() => navigator.clipboard.writeText(newlyCreatedUser.username)}><Copy className='h-4 w-4' /></Button>
+                        <Button size='sm' onClick={() => navigator.clipboard.writeText(newlyCreatedUser.username || '')}><Copy className='h-4 w-4' /></Button>
                     </div>
                     <div className='flex items-center gap-4'>
                         <Label htmlFor='new-password-display' className='w-24'>Password</Label>
                         <Input id='new-password-display' value={newlyCreatedUser.password} readOnly />
-                        <Button size='sm' onClick={() => navigator.clipboard.writeText(newlyCreatedUser.password)}><Copy className='h-4 w-4' /></Button>
+                        <Button size='sm' onClick={() => navigator.clipboard.writeText(newlyCreatedUser.password || '')}><Copy className='h-4 w-4' /></Button>
                     </div>
                 </div>
             </DialogContent>
