@@ -119,9 +119,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const createAccount = async (username: string, password: string): Promise<boolean> => {
     const email = `${username}@jtn.com.pk`;
+
+    // Check if a user with the same username already exists
+    const { data: existingUsers, error: existingUserError } = await supabase
+      .from('users')
+      .select('username')
+      .eq('username', username);
+
+    if (existingUserError) {
+      console.error('Error checking for existing users:', existingUserError.message);
+      toast({ title: 'Account Creation Failed', description: 'An unexpected error occurred.', variant: 'destructive' });
+      return false;
+    }
+
+    if (existingUsers && existingUsers.length > 0) {
+      toast({ title: 'Account Creation Failed', description: 'Username is already taken.', variant: 'destructive' });
+      return false;
+    }
     
-    // 1. Check if user already exists in auth.users
-    // This is a workaround since Supabase doesn't have a direct 'check if user exists' function without signing in
+    // Check if there are any users in the database
+    const { data: allUsers, error: allUsersError } = await supabase.from('users').select('id');
+    if (allUsersError) {
+        console.error('Error fetching user count:', allUsersError.message);
+        toast({ title: 'Account Creation Failed', description: 'An unexpected error occurred.', variant: 'destructive' });
+        return false;
+    }
+
+    const isFirstUser = allUsers.length === 0;
+    const userRole = isFirstUser ? 'admin' : 'user';
+    const userStatus = isFirstUser ? 'approved' : 'pending';
 
     // 2. Sign up the new user
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -131,37 +157,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     if (authError) {
         console.error('Error creating auth user:', authError.message);
+        toast({ title: 'Account Creation Failed', description: authError.message, variant: 'destructive' });
         return false;
     }
     if (!authData.user) {
         console.error('No user returned after sign up');
+        toast({ title: 'Account Creation Failed', description: 'Could not create user.', variant: 'destructive' });
         return false;
     }
     
     // 3. Insert into public.users table
-    const { data: userData, error: userError } = await supabase
+    const { error: userError } = await supabase
         .from('users')
         .insert([
             {
                 id: authData.user.id, // Use the ID from the auth user
                 username: username,
-                role: 'user',
-                status: 'pending',
+                role: userRole,
+                status: userStatus,
                 permissions: { 
                   dashboard: true, general: true, financials: false, reports: false, 
-                  billing: false, edit: false, expenses: false, trips: false, admin: false 
+                  billing: false, edit: false, expenses: false, trips: false, admin: userRole === 'admin' 
                 },
             },
         ]);
 
     if (userError) {
         console.error('Error creating user profile:', userError.message);
+        toast({ title: 'Account Creation Failed', description: userError.message, variant: 'destructive' });
         // Optional: Clean up the created auth.user if the profile insertion fails
         // await supabase.auth.api.deleteUser(authData.user.id);
         return false;
     }
 
     fetchUsers(); // Refresh the local user list
+    toast({ title: 'Account Created', description: isFirstUser ? 'Your admin account has been created.' : 'Your account is pending approval.' });
     return true;
   };
 

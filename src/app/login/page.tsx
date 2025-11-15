@@ -15,7 +15,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/context/auth-context';
-import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/icons';
 import Link from 'next/link';
 
@@ -24,22 +23,11 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const { login } = useAuth();
   const router = useRouter();
-  const { toast } = useToast();
 
   const handleLogin = async () => {
     const success = await login(username, password);
     if (success) {
-      toast({
-        title: 'Login Successful',
-        description: `Welcome back, ${username}!`,
-      });
       router.push('/');
-    } else {
-      toast({
-        title: 'Login Failed',
-        description: 'Invalid username or password.',
-        variant: 'destructive',
-      });
     }
   };
 
