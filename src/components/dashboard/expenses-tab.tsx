@@ -384,7 +384,7 @@ export default function ExpensesTab() {
                                           <div className="space-y-4">
                                             {te.vehicleExpenses.map((exp, index) => {
                                                 const maintenanceAmount = exp.category === 'maintenance' && exp.maintenanceDetail?.type === 'other'
-                                                    ? (exp.maintenanceDetail.instruments?.reduce((s, i) => s + Number(i.price), 0) || 0) + Number(exp.maintenanceDetail.laborCost || 0)
+                                                    ? (exp.maintenanceDetail?.instruments?.reduce((s, i) => s + Number(i.price), 0) || 0) + Number(exp.maintenanceDetail?.laborCost || 0)
                                                     : exp.amount;
 
                                                 return (
@@ -469,7 +469,7 @@ export default function ExpensesTab() {
                                                          )}
                                                           {exp.maintenanceDetail?.type === 'other' && (
                                                             <div className="space-y-4">
-                                                                {exp.maintenanceDetail.instruments?.map((inst) => (
+                                                                {exp.maintenanceDetail?.instruments?.map((inst) => (
                                                                     <div key={inst.id} className="flex gap-2 items-end">
                                                                         <div className="flex-grow space-y-2">
                                                                             <Label>Instrument</Label>
@@ -485,7 +485,7 @@ export default function ExpensesTab() {
                                                                 <Button type="button" variant="outline" size="sm" onClick={() => handleAddInstrument(trip.id, exp.id)}><PlusCircle className="mr-2"/>Add Instrument</Button>
                                                                 <div className="space-y-2">
                                                                     <Label>Labor Cost</Label>
-                                                                    <Input type="number" placeholder="e.g. 1000" value={exp.maintenanceDetail.laborCost} onChange={e => handleMaintenanceDetailChange(trip.id, exp.id, 'laborCost', Number(e.target.value))}/>
+                                                                    <Input type="number" placeholder="e.g. 1000" value={exp.maintenanceDetail?.laborCost} onChange={e => handleMaintenanceDetailChange(trip.id, exp.id, 'laborCost', Number(e.target.value))}/>
                                                                 </div>
                                                             </div>
                                                          )}
