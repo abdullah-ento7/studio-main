@@ -64,7 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (username: string, password: string): Promise<boolean> => {
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: username,
+      email: `${username}@example.com`,
       password: password,
     });
 
@@ -103,7 +103,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const initialRole = isFirstUser ? 'admin' : 'user';
 
     const { data, error } = await supabase.auth.signUp({
-        email: username,
+        email: `${username}@example.com`,
         password: password,
         options: {
             data: {
