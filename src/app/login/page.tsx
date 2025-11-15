@@ -20,24 +20,24 @@ import { Logo } from '@/components/icons';
 import Link from 'next/link';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const { login } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
   const handleLogin = async () => {
-    const success = await login(email, password);
+    const success = await login(username, password);
     if (success) {
       toast({
         title: 'Login Successful',
-        description: `Welcome back, ${email}!`,
+        description: `Welcome back, ${username}!`,
       });
       router.push('/');
     } else {
       toast({
         title: 'Login Failed',
-        description: 'Invalid email or password.',
+        description: 'Invalid username or password.',
         variant: 'destructive',
       });
     }
@@ -56,14 +56,14 @@ export default function LoginPage() {
         <CardContent>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
+                id="username"
+                type="text"
+                placeholder="Enter your username"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -80,17 +80,17 @@ export default function LoginPage() {
             </div>
           </div>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex-col items-center gap-4">
+          <div className="text-center text-sm">
+            <Link href="/create-account" className="text-muted-foreground hover:text-primary">
+                Don't have an account? Create one
+            </Link>
+          </div>
           <Button className="w-full" onClick={handleLogin}>
             Sign In
           </Button>
         </CardFooter>
       </Card>
-      <div className="mt-4 text-center text-sm">
-        <Link href="/create-account" className="text-muted-foreground hover:text-primary">
-            Don't have an account? Create one
-        </Link>
-      </div>
       <div className="mt-8 text-center text-sm text-muted-foreground">
         © {new Date().getFullYear()} <a href="https://jtn.com.pk" target="_blank" rel="noopener noreferrer" className="hover:text-primary">Jugnoo Transport Network</a>
       </div>

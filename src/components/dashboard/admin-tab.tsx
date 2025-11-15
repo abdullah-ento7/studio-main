@@ -224,7 +224,7 @@ export default function AdminTab() {
                     <div className="grid grid-cols-4 items-center gap-4">
                        <Label className="text-right">Permissions</Label>
                        <div className="col-span-3 grid grid-cols-2 gap-4 rounded-lg border p-4">
-                        {Object.keys(editingUser.permissions).map(key => (
+                        {Object.keys(editingUser.permissions ?? {}).map(key => (
                             <div key={key} className="flex items-center space-x-2">
                                 <Switch
                                 id={`${editingUser.username}-${key}-edit`}

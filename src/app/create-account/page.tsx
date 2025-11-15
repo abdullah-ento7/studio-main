@@ -79,17 +79,17 @@ export default function CreateAccountPage() {
             </div>
           </div>
         </CardContent>
-        <CardFooter>
-          <Button className="w-full" onClick={handleCreateAccount}>
-            Create Account
-          </Button>
+        <CardFooter className="flex-col items-center gap-4">
+            <div className="text-center text-sm">
+                <Link href="/login" className="text-muted-foreground hover:text-primary">
+                    Already have an account? Sign in
+                </Link>
+            </div>
+            <Button className="w-full" onClick={handleCreateAccount}>
+                Create Account
+            </Button>
         </CardFooter>
       </Card>
-      <div className="mt-4 text-center text-sm">
-        <Link href="/login" className="text-muted-foreground hover:text-primary">
-            Already have an account? Sign in
-        </Link>
-      </div>
       <div className="mt-8 text-center text-sm text-muted-foreground">
         © {new Date().getFullYear()} <a href="https://jtn.com.pk" target="_blank" rel="noopener noreferrer" className="hover:text-primary">Jugnoo Transport Network</a>
       </div>
