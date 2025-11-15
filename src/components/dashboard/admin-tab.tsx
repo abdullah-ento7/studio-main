@@ -81,9 +81,9 @@ export default function AdminTab() {
     if (!editingUser) return;
 
     // Prevent removing the last admin
-    if (editingUser.permissions.admin === false) {
-        const adminCount = users.filter(u => u.permissions.admin).length;
-        if (adminCount === 1 && users.find(u => u.id === editingUser.id)?.permissions.admin) {
+    if (editingUser.permissions?.admin === false) {
+        const adminCount = users.filter(u => u.permissions?.admin).length;
+        if (adminCount === 1 && users.find(u => u.id === editingUser.id)?.permissions?.admin) {
             toast({ title: 'Cannot Remove Last Admin', description: 'There must be at least one admin user.', variant: 'destructive'});
             return;
         }
