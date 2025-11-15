@@ -37,7 +37,7 @@ interface Transaction {
 }
 
 export default function AccountsTab() {
-    const { customers, suppliers, trips, expenses, savedBills, owners, vehicles } = useData();
+    const { customers, suppliers, trips, expenses, savedBills, owners, vehicles, refreshBills } = useData();
     const [accountType, setAccountType] = React.useState<'customer' | 'supplier' | 'vehicle'>();
     const [selectedAccountId, setSelectedAccountId] = React.useState<string>(); // For customer/supplier/owner
     const [selectedVehicleIds, setSelectedVehicleIds] = React.useState<string[]>([]);
@@ -162,7 +162,7 @@ export default function AccountsTab() {
         
         setTransactions(newTransactions.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
 
-    }, [selectedAccountId, selectedVehicleIds, accountType, trips, expenses, savedBills]);
+    }, [selectedAccountId, selectedVehicleIds, accountType, trips, expenses, savedBills, refreshBills]);
 
 
     const handleAccountTypeChange = (v: 'customer' | 'supplier' | 'vehicle') => {

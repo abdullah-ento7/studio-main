@@ -186,6 +186,7 @@ export type Shipment = {
 
 export type TripPayment = {
     id: string;
+    customerId?: string;
     date: string;
     amount: number;
     description?: string;

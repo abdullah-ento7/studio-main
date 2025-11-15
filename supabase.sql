@@ -1,5 +1,4 @@
 
-
 -- Enable Row Level Security (RLS) for all tables
 ALTER TABLE "users" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "drivers" ENABLE ROW LEVEL SECURITY;
@@ -12,8 +11,8 @@ ALTER TABLE "expenses" ENABLE ROW LEVEL SECURITY;
 
 -- Drop existing policies to avoid conflicts
 DROP POLICY IF EXISTS "Enable read access for all users" ON "users";
-DROP POLICY IF EXISTS "Enable read access for authenticated users" ON "users";
-DROP POLICY IF EXISTS "Allow admin to update user status" ON "users";
+DROP POLICY IF EXISTS "Enable insert for authenticated users" ON "users";
+DROP POLICY IF EXISTS "Enable update for users based on email" ON "users";
 DROP POLICY IF EXISTS "Enable all access for authenticated users" ON "drivers";
 DROP POLICY IF EXISTS "Enable all access for authenticated users" ON "vehicles";
 DROP POLICY IF EXISTS "Enable all access for authenticated users" ON "customers";
@@ -23,14 +22,22 @@ DROP POLICY IF EXISTS "Enable all access for authenticated users" ON "trips";
 DROP POLICY IF EXISTS "Enable all access for authenticated users" ON "expenses";
 
 -- Create policies for "users"
-CREATE POLICY "Enable read access for authenticated users" ON "users"
+CREATE POLICY "Enable read access for all users" ON "users"
     FOR SELECT
-    USING (auth.role() = 'authenticated');
+    USING (TRUE);
+    
+CREATE POLICY "Enable insert for authenticated users" ON "users"
+    FOR INSERT
+    WITH CHECK (auth.role() = 'authenticated');
 
-CREATE POLICY "Allow admin to update user status" ON "users"
-    FOR UPDATE
-    USING ( (SELECT role FROM public.users WHERE id = auth.uid()) = 'admin' )
-    WITH CHECK ( (SELECT role FROM public.users WHERE id = auth.uid()) = 'admin' );
+CREATE POLICY "Enable update for users based on email" ON "users" 
+    FOR UPDATE 
+    USING (
+        (SELECT u.role FROM public.users u WHERE u.id = auth.uid()) = 'admin'
+    )
+    WITH CHECK (
+        (SELECT u.role FROM public.users u WHERE u.id = auth.uid()) = 'admin'
+    );
 
 -- Create policies for other tables to only allow access to authenticated users
 CREATE POLICY "Enable all access for authenticated users" ON "drivers"

@@ -27,6 +27,7 @@ interface DataContextProps {
     savedBills: Bill[];
     setSavedBills: React.Dispatch<React.SetStateAction<Bill[]>>;
     refreshUsers: () => Promise<void>;
+    refreshBills: () => Promise<void>;
 }
 
 const DataContext = createContext<DataContextProps | undefined>(undefined);
@@ -49,6 +50,15 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             console.error('Error fetching users:', usersError);
         } else {
             setUsers(usersData as User[]);
+        }
+    };
+    
+    const refreshBills = async () => {
+        const { data: billsData, error: billsError } = await supabase.from('bills').select('*');
+        if (billsError) {
+            console.error('Error fetching bills:', billsError);
+        } else {
+            setSavedBills(billsData as Bill[]);
         }
     };
 
@@ -79,6 +89,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             if (ownersError) console.error('Error fetching owners:', ownersError); else setOwners(owners as Owner[]);
 
             await refreshUsers();
+            await refreshBills();
         };
 
         fetchData();
@@ -96,6 +107,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         users, setUsers,
         savedBills, setSavedBills,
         refreshUsers,
+        refreshBills,
     };
 
     return (
