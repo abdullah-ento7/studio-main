@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -114,11 +113,11 @@ export default function CreateAccountPage() {
               <Input
                 id="username"
                 type="text"
-                placeholder="6 lowercase letters (e.g. 'johndoe')"
+                placeholder="6 lowercase letters/digits (e.g. 'user123')"
                 required
                 value={username}
                 onChange={(e) => {
-                  const value = e.target.value.toLowerCase().replace(/[^a-z]/g, '');
+                  const value = e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '');
                   setUsername(value.slice(0, 6));
                 }}
                 maxLength={6}
@@ -129,7 +128,7 @@ export default function CreateAccountPage() {
               </div>
             </div>
             <p className="text-xs text-muted-foreground ml-1">
-              Must be exactly 6 lowercase letters.
+              Must be exactly 6 lowercase letters or digits.
             </p>
           </div>
 

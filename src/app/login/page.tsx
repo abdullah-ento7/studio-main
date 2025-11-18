@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -69,10 +68,14 @@ export default function LoginPage() {
                 <Input
                   id="username"
                   type="text"
-                  placeholder="Enter your 6-letter username"
+                  placeholder="6-character username (letters/digits)"
                   required
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    setUsername(value.slice(0, 6));
+                  }}
+                  maxLength={6}
                   className="pl-12 h-14 rounded-xl border-muted-foreground/20 focus:border-primary/50 bg-white/80 dark:bg-black/80 backdrop-blur-sm shadow-sm transition-all"
                 />
               </div>

@@ -1,24 +1,29 @@
-
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
 import type { User } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 
+type UserStatus = "approved" | "pending" | "disabled";
+
 interface AuthContextProps {
   user: User | null;
+  users: User[];
   loading: boolean;
-  login: (username: string, pin: string) => Promise<boolean>;
+  login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   createAccount: (username: string, password: string) => Promise<boolean>;
+  fetchUsers: () => Promise<void>;
+  updateUserStatus: (userId: string, status: UserStatus) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const router = useRouter();
@@ -81,6 +86,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(userProfile as User || null);
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
+        setUsers([]);
         router.push('/login');
       }
       setLoading(false);
@@ -91,17 +97,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [toast, router]);
 
-  const login = async (username: string, pin: string): Promise<boolean> => {
+  const login = async (username: string, password: string): Promise<boolean> => {
     const email = `${username}@jtn.com.pk`;
-    const { error } = await supabase.auth.signInWithPassword({ email, password: pin });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
       console.error("Login failed:", error.message);
       toast({ title: 'Login Failed', description: 'Invalid username or password.', variant: 'destructive' });
       return false;
     }
-
-    // The onAuthStateChange listener will handle setting the user state
     return true;
   };
 
@@ -111,13 +115,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error("Logout failed:", error.message);
       toast({ title: 'Logout Failed', description: 'An error occurred during logout.', variant: 'destructive' });
     }
-    // The onAuthStateChange listener handles the redirect
   };
 
   const createAccount = async (username: string, password: string): Promise<boolean> => {
-    const usernameRegex = /^[a-z]{6}$/;
+    const usernameRegex = /^[a-z0-9]{6}$/;
     if (!usernameRegex.test(username)) {
-      toast({ title: 'Invalid Username', description: 'Username must be exactly 6 lowercase letters.', variant: 'destructive' });
+      toast({ title: 'Invalid Username', description: 'Username must be exactly 6 lowercase letters or digits.', variant: 'destructive' });
       return false;
     }
 
@@ -188,8 +191,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return true;
   };
 
+  const fetchUsers = useCallback(async () => {
+    if (user?.role !== 'admin') return;
+
+    const { data, error } = await supabase.from('users').select('*');
+    if (error) {
+      console.error('Error fetching users:', error.message);
+      toast({ title: 'Error Fetching Users', description: 'Could not fetch user list.', variant: 'destructive' });
+    } else {
+      setUsers(data as User[]);
+    }
+  }, [user, toast]);
+
+  const updateUserStatus = async (userId: string, status: UserStatus) => {
+    if (user?.role !== 'admin') {
+      toast({ title: 'Permission Denied', description: 'You do not have permission to update user status.', variant: 'destructive' });
+      return;
+    }
+
+    const { error } = await supabase
+      .from('users')
+      .update({ status })
+      .eq('id', userId);
+
+    if (error) {
+      console.error('Error updating user status:', error.message);
+      toast({ title: 'Update Failed', description: 'Could not update user status.', variant: 'destructive' });
+    } else {
+      toast({ title: 'Update Successful', description: `User status has been updated to ${status}.` });
+      setUsers(prevUsers => prevUsers.map(u => u.id === userId ? { ...u, status } : u));
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, createAccount }}>
+    <AuthContext.Provider value={{ user, users, loading, login, logout, createAccount, fetchUsers, updateUserStatus }}>
       {children}
     </AuthContext.Provider>
   );
