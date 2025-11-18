@@ -118,6 +118,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const createAccount = async (username: string, password: string): Promise<boolean> => {
+    const usernameRegex = /^[a-z]{1,6}$/;
+    if (!usernameRegex.test(username)) {
+      toast({
+        title: 'Invalid Username',
+        description: 'Username must be 1-6 lowercase letters and contain no numbers or special characters.',
+        variant: 'destructive',
+      });
+      return false;
+    }
+
     const email = `${username}@jtn.com.pk`;
 
     const { data: existingUsers, error: existingUserError } = await supabase
@@ -147,6 +157,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const userRole = isFirstUser ? 'admin' : 'user';
     const userStatus = isFirstUser ? 'approved' : 'pending';
 
+    if (isFirstUser) {
+        const adminPasswordRegex = /^[a-zA-Z0-9]{1,6}$/;
+        if (!adminPasswordRegex.test(password)) {
+            toast({
+                title: 'Invalid Admin Password',
+                description: 'Admin password must be 1-6 characters and can contain letters and digits.',
+                variant: 'destructive',
+            });
+            return false;
+        }
+    } else {
+        const userPasswordRegex = /^[0-9]{6}$/;
+        if (!userPasswordRegex.test(password)) {
+            toast({
+                title: 'Invalid Password',
+                description: 'Password must be exactly 6 digits.',
+                variant: 'destructive',
+            });
+            return false;
+        }
+    }
+
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: email,
       password: password,
@@ -154,6 +186,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         data: {
           username: username,
         },
+        email_confirm: true,
       }
     });
 

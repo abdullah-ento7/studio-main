@@ -4,19 +4,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/context/auth-context';
-import { Logo } from '@/components/icons';
 import Link from 'next/link';
+import { Landmark } from 'lucide-react';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -32,59 +24,61 @@ export default function LoginPage() {
   };
 
   return (
-    <div 
-      className="flex min-h-screen flex-col items-center justify-center bg-cover bg-center p-4" 
-      style={{ backgroundImage: "url('https://source.unsplash.com/random/?transport')" }}
-    >
-      <div className="absolute inset-0 bg-black opacity-50"></div>
-      <Card className="relative z-10 w-full max-w-md bg-white/90 backdrop-blur-sm dark:bg-gray-950/90">
-        <CardHeader className="text-center">
-            <div className="flex justify-center items-center mb-6">
-              <Logo className="h-20 w-auto text-orange-500" />
+    <div className="w-full lg:grid lg:min-h-[100vh] lg:grid-cols-2 xl:min-h-[100vh]">
+      <div className="flex items-center justify-center py-12">
+        <div className="mx-auto grid w-[350px] gap-6">
+          <div className="grid gap-2 text-center">
+            <h1 className="text-3xl font-bold">Login</h1>
+            <p className="text-balance text-muted-foreground">
+              Enter your username below to login to your account
+            </p>
+          </div>
+          <div className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                type="text"
+                placeholder="Your username"
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
             </div>
-          <CardTitle className="text-4xl font-bold text-gray-800 dark:text-white">Sign In</CardTitle>
-          <CardDescription className="text-gray-600 dark:text-gray-300">Enter your credentials to access the dashboard</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="username" className="text-lg text-gray-700 dark:text-gray-300">Username</Label>
-            <Input
-              id="username"
-              type="text"
-              placeholder="Enter your username"
-              required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-3 text-lg border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-            />
+            <div className="grid gap-2">
+              <div className="flex items-center">
+                <Label htmlFor="password">Password</Label>
+              </div>
+              <Input 
+                id="password" 
+                type="password" 
+                placeholder="Your password"
+                required 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+              />
+            </div>
+            <Button type="submit" className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 text-white hover:from-orange-600 hover:to-yellow-600" onClick={handleLogin}>
+              Login
+            </Button>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="password"className="text-lg text-gray-700 dark:text-gray-300">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-              className="w-full px-4 py-3 text-lg border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-            />
-          </div>
-        </CardContent>
-        <CardFooter className="flex-col items-center gap-4">
-          <Button className="w-full py-3 text-lg bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg" onClick={handleLogin}>
-            Sign In
-          </Button>
-          <div className="text-center text-sm">
-            <Link href="/create-account" className="text-gray-600 hover:text-orange-500 dark:text-gray-400 dark:hover:text-orange-400">
-                Don't have an account? Create one
+          <div className="mt-4 text-center text-sm">
+            Don&apos;t have an account?{' '}
+            <Link href="/create-account" className="underline">
+              Sign up
             </Link>
           </div>
-        </CardFooter>
-      </Card>
-      <div className="mt-8 text-center text-sm text-white/80">
-        © {new Date().getFullYear()} <a href="https://jtn.com.pk" target="_blank" rel="noopener noreferrer" className="hover:text-orange-400">Jugnoo Transport Network</a>
+        </div>
+      </div>
+      <div className="hidden bg-gradient-to-br from-orange-400 to-yellow-500 lg:flex lg:flex-col items-center justify-center space-y-4 p-10">
+        <Landmark className="h-20 w-auto text-white" />
+        <h2 className="text-4xl font-bold text-center text-white">
+          Streamline Your Operations with Jugnoo Transport Network
+        </h2>
+        <p className="text-lg text-center text-white/90">
+          Efficiently manage your fleet, track shipments, and gain valuable insights to drive your business forward.
+        </p>
       </div>
     </div>
   );
