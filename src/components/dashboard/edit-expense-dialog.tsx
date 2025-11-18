@@ -25,9 +25,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { DatePicker } from '@/components/ui/date-picker';
-import type { Expense, Supplier, ExpenseCategory, User } from '@/lib/types';
+import type { Expense, Supplier, ExpenseCategory } from '@/lib/types';
 import { expenseCategories } from '@/lib/types';
-import { useData } from '@/context/data-context';
 import { useAuth } from '@/context/auth-context';
 
 interface EditExpenseDialogProps {
@@ -39,24 +38,26 @@ interface EditExpenseDialogProps {
 }
 
 export default function EditExpenseDialog({ isOpen, onClose, expense, onSave, suppliers }: EditExpenseDialogProps) {
-  const { loggedInUser } = useAuth();
+  const { user: loggedInUser } = useAuth();
   const isAdmin = loggedInUser?.permissions?.admin;
 
   const [date, setDate] = React.useState<Date | undefined>(new Date(expense.date));
   const [category, setCategory] = React.useState<ExpenseCategory>(expense.category);
   const [amount, setAmount] = React.useState(expense.amount.toString());
   const [description, setDescription] = React.useState(expense.description);
-  const [supplierId, setSupplierId] = React.useState(expense.supplierId);
+  const [supplierId, setSupplierId] = React.useState(expense.supplierId || undefined);
   const [isDirty, setIsDirty] = React.useState(false);
   const [isDiscardAlertOpen, setIsDiscardAlertOpen] = React.useState(false);
 
   React.useEffect(() => {
-    setDate(new Date(expense.date));
-    setCategory(expense.category);
-    setAmount(expense.amount.toString());
-    setDescription(expense.description);
-    setSupplierId(expense.supplierId);
-    setIsDirty(false);
+    if (isOpen) {
+        setDate(new Date(expense.date));
+        setCategory(expense.category);
+        setAmount(expense.amount.toString());
+        setDescription(expense.description);
+        setSupplierId(expense.supplierId || undefined);
+        setIsDirty(false);
+    }
   }, [expense, isOpen]);
 
   if (!isOpen) return null;
@@ -80,63 +81,63 @@ export default function EditExpenseDialog({ isOpen, onClose, expense, onSave, su
       description,
       supplierId: supplierId || undefined,
     });
+    onClose();
   };
-
 
   return (
     <>
-    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="sm:max-w-[625px]">
-        <DialogHeader>
-          <DialogTitle>Edit Expense: {expense.id}</DialogTitle>
-        </DialogHeader>
-        <div className="grid gap-4 py-4" onChange={handleDirty}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="expense-date">Date</Label>
-              <DatePicker date={date} setDate={(d) => { setDate(d); handleDirty(); }} disablePast={!isAdmin} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="expense-category">Category</Label>
-              <Select value={category} onValueChange={(value) => { setCategory(value as ExpenseCategory); handleDirty(); }}>
-                <SelectTrigger id="expense-category">
-                  <SelectValue placeholder="Select Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {expenseCategories.map(cat => <SelectItem key={cat} value={cat} className="capitalize">{cat}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="expense-amount">Amount</Label>
-              <Input id="expense-amount" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} />
-            </div>
-            {category === 'maintenance' && (
+      <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+        <DialogContent className="sm:max-w-[625px]">
+          <DialogHeader>
+            <DialogTitle>Edit Expense: {expense.id}</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="expense-supplier">Supplier</Label>
-                <Select value={supplierId} onValueChange={(val) => {setSupplierId(val); handleDirty()}}>
-                  <SelectTrigger id="expense-supplier">
-                    <SelectValue placeholder="Select supplier" />
+                <Label htmlFor="expense-date">Date</Label>
+                <DatePicker date={date} setDate={(d) => { setDate(d); handleDirty(); }} disablePast={!isAdmin} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="expense-category">Category</Label>
+                <Select value={category} onValueChange={(value) => { setCategory(value as ExpenseCategory); handleDirty(); }}>
+                  <SelectTrigger id="expense-category">
+                    <SelectValue placeholder="Select Category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {suppliers.filter(s => s.service.includes('maintenance') || s.service.includes('spare parts')).map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                    {expenseCategories.map(cat => <SelectItem key={cat} value={cat} className="capitalize">{cat}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-            )}
+              <div className="space-y-2">
+                <Label htmlFor="expense-amount">Amount</Label>
+                <Input id="expense-amount" type="number" value={amount} onChange={(e) => { setAmount(e.target.value); handleDirty(); }} />
+              </div>
+              {category === 'maintenance' && (
+                <div className="space-y-2">
+                  <Label htmlFor="expense-supplier">Supplier</Label>
+                  <Select value={supplierId} onValueChange={(val) => { setSupplierId(val); handleDirty(); }}>
+                    <SelectTrigger id="expense-supplier">
+                      <SelectValue placeholder="Select supplier" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {suppliers.filter(s => s.service.includes('maintenance') || s.service.includes('spare parts')).map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="expense-description">Description</Label>
+              <Textarea id="expense-description" value={description} onChange={(e) => { setDescription(e.target.value); handleDirty(); }} />
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="expense-description">Description</Label>
-            <Textarea id="expense-description" value={description} onChange={(e) => setDescription(e.target.value)} />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleSave}>Save Changes</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-     <AlertDialog open={isDiscardAlertOpen} onOpenChange={setIsDiscardAlertOpen}>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleClose}>Cancel</Button>
+            <Button onClick={handleSave}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <AlertDialog open={isDiscardAlertOpen} onOpenChange={setIsDiscardAlertOpen}>
         <AlertDialogContent>
             <AlertDialogHeader>
                 <AlertDialogTitle>Discard Changes?</AlertDialogTitle>

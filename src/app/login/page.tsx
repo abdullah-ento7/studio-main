@@ -36,11 +36,6 @@ export default function LoginPage() {
       router.push('/');
     } else {
       setError('Invalid username or password. Please try again.');
-      toast({
-        variant: 'destructive',
-        title: 'Login Failed',
-        description: 'Invalid username or password. Please try again.',
-      });
     }
     setIsLoading(false);
   };
@@ -98,7 +93,7 @@ export default function LoginPage() {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Enter your 6-digit PIN"
+                  placeholder="Enter your password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

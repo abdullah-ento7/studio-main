@@ -1,132 +1,134 @@
 
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import type { User } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import type { User } from '@/lib/types';
+import { useRouter } from 'next/navigation';
 
 interface AuthContextProps {
   user: User | null;
-  loggedInUser: User | null;
-  users: User[];
-  login: (username: string, password: string) => Promise<boolean>;
+  loading: boolean;
+  login: (username: string, pin: string) => Promise<boolean>;
   logout: () => void;
   createAccount: (username: string, password: string) => Promise<boolean>;
-  fetchUsers: () => void;
-  updateUserStatus: (userId: string, status: 'approved' | 'rejected') => Promise<void>;
-  updateUser: (user: User) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-
-  const fetchUsers = async () => {
-    const { data, error } = await supabase.from('users').select('*');
-    if (error) {
-      console.error('Error fetching users:', error);
-    } else {
-      setUsers(data as User[]);
-    }
-  };
-
-  const fetchUserProfile = async (userId: string) => {
-    const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
-    if (error) {
-      console.error('Error fetching user profile:', error);
-      return null;
-    }
-    return data as User;
-  };
+  const router = useRouter();
 
   useEffect(() => {
-    const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const userProfile = await fetchUserProfile(session.user.id);
-        if (userProfile && userProfile.status === 'approved') {
-          setUser(userProfile);
+    const fetchSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Error fetching session:", error.message);
+          setLoading(false);
+          return;
         }
-      }
-    };
-    getSession();
-    fetchUsers();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session) {
-        const userProfile = await fetchUserProfile(session.user.id);
-        if (userProfile && userProfile.status === 'approved') {
-          setUser(userProfile);
-          if (event === 'INITIAL_SESSION') {
-            fetchUsers();
+        if (session) {
+          const { data: userProfile, error: profileError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profileError) {
+            console.error("Error fetching user profile:", profileError.message);
+            await supabase.auth.signOut(); 
+            setUser(null);
+          } else if (userProfile) {
+            if(userProfile.status === 'pending') {
+                toast({ title: 'Account Pending', description: 'Your account is pending approval from an administrator.', variant: 'destructive' });
+                await supabase.auth.signOut();
+                setUser(null);
+            } else if (userProfile.status === 'disabled') {
+                toast({ title: 'Account Disabled', description: 'Your account has been disabled. Please contact an administrator.', variant: 'destructive' });
+                await supabase.auth.signOut();
+                setUser(null);
+            } else {
+                setUser(userProfile as User);
+            }
           }
         } else {
           setUser(null);
         }
-      } else {
+      } catch (e) {
+        console.error("An unexpected error occurred during session fetch:", e);
         setUser(null);
       }
+      setLoading(false);
+    };
+
+    fetchSession();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setLoading(true);
+      if (event === 'SIGNED_IN' && session) {
+        const { data: userProfile } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+        setUser(userProfile as User || null);
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        router.push('/login');
+      }
+      setLoading(false);
     });
 
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, []);
+  }, [toast, router]);
 
-  const login = async (username: string, password: string): Promise<boolean> => {
+  const login = async (username: string, pin: string): Promise<boolean> => {
     const email = `${username}@jtn.com.pk`;
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: password,
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password: pin });
 
-    if (error || !data.user) {
-      console.error('Error logging in:', error?.message);
+    if (error) {
+      console.error("Login failed:", error.message);
       toast({ title: 'Login Failed', description: 'Invalid username or password.', variant: 'destructive' });
       return false;
     }
 
-    const userProfile = await fetchUserProfile(data.user.id);
-
-    if (userProfile) {
-      if (userProfile.status === 'approved') {
-        setUser(userProfile);
-        toast({ title: 'Login Successful', description: `Welcome back, ${userProfile.username}!` });
-        return true;
-      }
-      if (userProfile.status === 'pending') {
-        toast({ title: 'Login Failed', description: 'Your account is pending approval.', variant: 'destructive' });
-      } else {
-        toast({ title: 'Login Failed', description: `Your account is currently ${userProfile.status}. Contact an admin.`, variant: 'destructive' });
-      }
-    } else {
-      toast({ title: 'Login Failed', description: 'User profile not found. Please contact an administrator.', variant: 'destructive' });
-    }
-
-    await supabase.auth.signOut();
-    return false;
+    // The onAuthStateChange listener will handle setting the user state
+    return true;
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    toast({ title: 'Logged Out', description: 'You have been successfully logged out.' });
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Logout failed:", error.message);
+      toast({ title: 'Logout Failed', description: 'An error occurred during logout.', variant: 'destructive' });
+    }
+    // The onAuthStateChange listener handles the redirect
   };
 
   const createAccount = async (username: string, password: string): Promise<boolean> => {
-    // Strict 6-letter check
     const usernameRegex = /^[a-z]{6}$/;
     if (!usernameRegex.test(username)) {
-      toast({
-        title: 'Invalid Username',
-        description: 'Username must be exactly 6 lowercase letters.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Invalid Username', description: 'Username must be exactly 6 lowercase letters.', variant: 'destructive' });
       return false;
+    }
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
+    if (!passwordRegex.test(password)) {
+        toast({
+            title: 'Invalid Password',
+            description: 'Password must be at least 6 characters and include uppercase, lowercase, and numbers.',
+            variant: 'destructive',
+        });
+        return false;
     }
 
     const email = `${username}@jtn.com.pk`;
@@ -158,37 +160,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const userRole = isFirstUser ? 'admin' : 'user';
     const userStatus = isFirstUser ? 'approved' : 'pending';
 
-    if (isFirstUser) {
-        const adminPasswordRegex = /^[a-zA-Z0-9]{6}$/;
-        if (!adminPasswordRegex.test(password)) {
-            toast({
-                title: 'Invalid Admin Password',
-                description: 'Admin password must be 6 characters.',
-                variant: 'destructive',
-            });
-            return false;
-        }
-    } else {
-        const userPasswordRegex = /^[0-9]{6}$/;
-        if (!userPasswordRegex.test(password)) {
-            toast({
-                title: 'Invalid Password',
-                description: 'Password must be exactly 6 digits.',
-                variant: 'destructive',
-            });
-            return false;
-        }
-    }
-
     const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: email,
-      password: password,
+      email,
+      password,
       options: {
         data: {
-          username: username,
+          username,
+          role: userRole,
+          status: userStatus,
+          permissions: { admin: userRole === 'admin' },
         },
-        email_confirm: false,
-      }
+      },
     });
 
     if (authError) {
@@ -196,74 +178,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       toast({ title: 'Account Creation Failed', description: authError.message, variant: 'destructive' });
       return false;
     }
+
     if (!authData.user) {
-      console.error('No user returned after sign up');
-      toast({ title: 'Account Creation Failed', description: 'Could not create user account.', variant: 'destructive' });
-      return false;
+        console.error('No user data returned after sign up');
+        toast({ title: 'Account Creation Failed', description: 'An unknown error occurred.', variant: 'destructive' });
+        return false;
     }
-
-    const { error: userError } = await supabase
-      .from('users')
-      .insert([
-        {
-          id: authData.user.id,
-          username: username,
-          role: userRole,
-          status: userStatus,
-          permissions: {
-            dashboard: true, general: true, financials: false, reports: false, 
-            billing: false, edit: false, expenses: false, trips: false, admin: userRole === 'admin'
-          },
-        },
-      ]);
-
-    if (userError) {
-      console.error('Error creating user profile:', userError.message);
-      toast({ title: 'Account Creation Failed', description: `Server error creating profile: ${userError.message}`, variant: 'destructive' });
-      return false;
-    }
-
-    fetchUsers();
-    toast({ title: 'Account Created', description: isFirstUser ? 'Your admin account has been created and approved.' : 'Your account has been created and is pending approval.' });
+    
     return true;
   };
 
-  const updateUserStatus = async (userId: string, status: 'approved' | 'rejected') => {
-    const { error } = await supabase.from('users').update({ status }).eq('id', userId);
-    if (error) {
-      console.error(`Error updating user status to ${status}:`, error);
-      toast({ title: 'Error', description: 'Failed to update user status.', variant: 'destructive' });
-    } else {
-      fetchUsers();
-      toast({ title: 'Success', description: `User status updated to ${status}.` });
-    }
-  };
-
-  const updateUser = async (user: User) => {
-    const { id, ...updateData } = user;
-    const { error } = await supabase.from('users').update(updateData).eq('id', id);
-    if (error) {
-      console.error('Error updating user:', error);
-      toast({ title: 'Update Failed', description: 'Could not save user changes.', variant: 'destructive' });
-    } else {
-      toast({ title: 'User Updated', description: 'User details have been saved successfully.' });
-      fetchUsers();
-    }
-  }
-
-  const value = {
-    user,
-    loggedInUser: user,
-    users,
-    login,
-    logout,
-    createAccount,
-    fetchUsers,
-    updateUserStatus,
-    updateUser,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, loading, login, logout, createAccount }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {

@@ -22,10 +22,6 @@ export default function CreateAccountPage() {
   const { toast } = useToast();
 
   const handleCreateAccount = async () => {
-    if (username.length !== 6 || password.length !== 6) {
-      setError('Username and password must be exactly 6 characters long.');
-      return;
-    }
     setError('');
     setIsLoading(true);
     const success = await createAccount(username, password);
@@ -36,13 +32,7 @@ export default function CreateAccountPage() {
       });
       setIsSubmitted(true);
     } else {
-      const errorMessage = 'Failed to create account. The username might already be taken.';
-      setError(errorMessage);
-      toast({
-        variant: 'destructive',
-        title: 'Account Creation Failed',
-        description: errorMessage,
-      });
+      // Error toasts are handled by the auth context
     }
     setIsLoading(false);
   };
@@ -150,23 +140,16 @@ export default function CreateAccountPage() {
               <Input
                 id="password"
                 type="password"
-                placeholder="6-digit numeric PIN"
+                placeholder="Min. 6 characters (case-sensitive, with numbers)"
                 required
                 value={password}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/[^0-9]/g, '');
-                  setPassword(value.slice(0, 6));
-                }}
-                maxLength={6}
+                onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleCreateAccount()}
                 className="pl-12 h-14 rounded-xl border-muted-foreground/20 focus:border-primary/50 bg-white/80 dark:bg-black/80 backdrop-blur-sm shadow-sm transition-all"
               />
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
-                {password.length}/6
-              </div>
             </div>
             <p className="text-xs text-muted-foreground ml-1">
-              Must be exactly 6 digits.
+              Must be at least 6 characters and include uppercase, lowercase, and numbers.
             </p>
           </div>
 
@@ -180,7 +163,7 @@ export default function CreateAccountPage() {
           <Button
             onClick={handleCreateAccount}
             type="submit"
-            disabled={isLoading || username.length !== 6 || password.length !== 6}
+            disabled={isLoading}
             className="w-full h-14 text-lg font-semibold rounded-xl bg-gradient-to-r from-primary to-accent hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 mt-4"
           >
             {isLoading ? 'Requesting...' : 'Request Account'}
