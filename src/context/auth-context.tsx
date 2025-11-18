@@ -150,6 +150,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: email,
       password: password,
+      options: {
+        data: {
+          username: username,
+        },
+      }
     });
 
     if (authError) {
@@ -172,7 +177,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           role: userRole,
           status: userStatus,
           permissions: {
-            dashboard: true, general: true, financials: false, reports: false,
+            dashboard: true, general: true, financials: false, reports: false, 
             billing: false, edit: false, expenses: false, trips: false, admin: userRole === 'admin'
           },
         },
