@@ -21,7 +21,7 @@ export default function AdminPage() {
   };
 
   const handleReject = async (userId: string) => {
-    await updateUserStatus(userId, 'rejected');
+    await updateUserStatus(userId, 'disabled');
   };
 
   if (user?.role !== 'admin') {
