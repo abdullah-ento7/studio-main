@@ -5,95 +5,163 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useAuth } from '@/context/auth-context';
 import Link from 'next/link';
-import { Landmark, User, Lock } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { User, Lock, ArrowRight, ShieldAlert } from 'lucide-react';
+import { Logo } from '@/components/icons';
+import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const { login } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
 
   const handleLogin = async () => {
+    if (!username || !password) {
+      setError('Please enter both username and password.');
+      return;
+    }
+    setError('');
+    setIsLoading(true);
     const success = await login(username, password);
     if (success) {
+      toast({
+        title: 'Login Successful',
+        description: "You've been successfully logged in.",
+      });
       router.push('/');
+    } else {
+      setError('Invalid username or password. Please try again.');
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: 'Invalid username or password. Please try again.',
+      });
     }
+    setIsLoading(false);
   };
 
   return (
-    <div className="w-full min-h-screen grid grid-cols-1 lg:grid-cols-2">
-      <div className="flex items-center justify-center p-6 lg:p-10">
-        <Card className="w-full max-w-md mx-auto shadow-2xl rounded-2xl">
-          <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-                <Landmark className="h-12 w-auto text-orange-500" />
-            </div>
-            <CardTitle className="text-3xl font-bold tracking-tight">Welcome Back</CardTitle>
-            <CardDescription className="text-muted-foreground">
-              Enter your credentials to access your account.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-6">
-            <div className="grid gap-4">
+    <div className="min-h-screen w-full flex overflow-hidden bg-background">
+      {/* Left Side - Form */}
+      <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-12 lg:px-24 xl:px-32 relative z-10 bg-white/50 dark:bg-black/50 backdrop-blur-xl">
+        <div className="mb-8">
+          <Logo className="h-10 w-auto text-primary mb-6" />
+          <h1 className="text-4xl font-headline font-bold tracking-tight mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
+            Welcome Back
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            Enter your credentials to access your dashboard.
+          </p>
+        </div>
+
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <label
+              htmlFor="username"
+              className="text-sm font-medium text-foreground ml-1"
+            >
+              Username
+            </label>
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transition-colors group-focus-within:text-primary" />
                 <Input
                   id="username"
                   type="text"
-                  placeholder="Username"
+                  placeholder="Enter your 6-letter username"
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="pl-10 h-12 text-base rounded-xl focus:ring-2 focus:ring-orange-500/50"
+                  className="pl-12 h-14 rounded-xl border-muted-foreground/20 focus:border-primary/50 bg-white/80 dark:bg-black/80 backdrop-blur-sm shadow-sm transition-all"
                 />
               </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="password"
+              className="text-sm font-medium text-foreground ml-1"
+            >
+              Password
+            </label>
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input 
-                  id="password" 
-                  type="password" 
-                  placeholder="Password"
-                  required 
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Enter your 6-digit PIN"
+                  required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                  className="pl-10 h-12 text-base rounded-xl focus:ring-2 focus:ring-orange-500/50"
+                  className="pl-12 h-14 rounded-xl border-muted-foreground/20 focus:border-primary/50 bg-white/80 dark:bg-black/80 backdrop-blur-sm shadow-sm transition-all"
                 />
               </div>
             </div>
-            <Button 
-                type="submit" 
-                className="w-full h-12 text-base font-semibold text-white bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 rounded-xl transition-transform transform hover:scale-105 shadow-lg"
-                onClick={handleLogin}
-            >
-              Login
-            </Button>
-            <div className="mt-4 text-center text-sm">
-              Don't have an account?{' '}
-              <Link href="/create-account" className="font-semibold text-orange-600 hover:underline">
-                Sign up
-              </Link>
+          </div>
+
+          {error && (
+            <div className="flex items-center space-x-2 text-destructive text-sm bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+              <ShieldAlert className="h-5 w-5" />
+              <p>{error}</p>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-      <div className="hidden lg:flex flex-col items-center justify-center bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 p-10 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-repeat bg-center opacity-5" style={{backgroundImage: 'url(/path-to-your-pattern.svg)'}}></div>
-        <div className="z-10 text-center space-y-4">
-          <Landmark className="h-24 w-auto mx-auto animate-bounce" />
-          <h2 className="text-5xl font-bold tracking-tight">
-            Jugnoo Transport Network
-          </h2>
-          <p className="text-xl max-w-2xl mx-auto">
-            Your trusted partner in logistics. Streamlined, efficient, and always on time.
+          )}
+
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="w-full h-14 text-lg font-semibold rounded-xl bg-gradient-to-r from-primary to-accent hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 mt-4 group"
+            onClick={handleLogin}
+          >
+            {isLoading ? 'Signing in...' : 'Sign In'}
+            {!isLoading && (
+              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            )}
+          </Button>
+        </div>
+
+        <div className="mt-8 text-center">
+          <p className="text-muted-foreground">
+            Don't have an account?{' '}
+            <Link
+              href="/create-account"
+              className="font-semibold text-primary hover:text-accent transition-colors underline-offset-4 hover:underline"
+            >
+              Create Account
+            </Link>
           </p>
         </div>
-        <div className="absolute bottom-4 right-4 text-xs opacity-70">
-          &copy; {new Date().getFullYear()} Jugnoo Transport Network. All Rights Reserved.
+      </div>
+
+      {/* Right Side - Visual */}
+      <div className="hidden lg:flex w-1/2 relative bg-black items-center justify-center overflow-hidden">
+        {/* Abstract Background Elements */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,_rgba(124,58,237,0.2),_transparent_50%)]" />
+        <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-br from-primary/20 via-background to-accent/20 mix-blend-overlay" />
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/30 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-accent/30 rounded-full blur-3xl animate-pulse delay-700" />
+
+        <div className="relative z-10 p-12 text-center max-w-xl backdrop-blur-sm rounded-3xl border border-white/10 bg-white/5 shadow-2xl">
+          <h2 className="text-5xl font-bold text-white mb-6 leading-tight">
+            Logistics <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
+              Reimagined
+            </span>
+          </h2>
+          <p className="text-lg text-gray-300 leading-relaxed">
+            Experience the next generation of transport management. Streamlined
+            operations, real-time tracking, and vibrant insights at your
+            fingertips.
+          </p>
         </div>
       </div>
     </div>

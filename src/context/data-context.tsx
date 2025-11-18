@@ -64,32 +64,40 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
     useEffect(() => {
         const fetchData = async () => {
-            const { data: drivers, error: driversError } = await supabase.from('drivers').select('*');
-            if (driversError) console.error('Error fetching drivers:', driversError); else setDrivers(drivers as Driver[]);
+            const [
+                driversRes,
+                vehiclesRes,
+                customersRes,
+                citiesRes,
+                suppliersRes,
+                tripsRes,
+                expensesRes,
+                ownersRes,
+                usersRes,
+                billsRes
+            ] = await Promise.all([
+                supabase.from('drivers').select('*'),
+                supabase.from('vehicles').select('*'),
+                supabase.from('customers').select('*'),
+                supabase.from('cities').select('*'),
+                supabase.from('suppliers').select('*'),
+                supabase.from('trips').select('*'),
+                supabase.from('expenses').select('*'),
+                supabase.from('owners').select('*'),
+                supabase.from('users').select('*'),
+                supabase.from('bills').select('*')
+            ]);
 
-            const { data: vehicles, error: vehiclesError } = await supabase.from('vehicles').select('*');
-            if (vehiclesError) console.error('Error fetching vehicles:', vehiclesError); else setVehicles(vehicles as Vehicle[]);
-
-            const { data: customers, error: customersError } = await supabase.from('customers').select('*');
-            if (customersError) console.error('Error fetching customers:', customersError); else setCustomers(customers as Customer[]);
-
-            const { data: cities, error: citiesError } = await supabase.from('cities').select('*');
-            if (citiesError) console.error('Error fetching cities:', citiesError); else setCities(cities as City[]);
-
-            const { data: suppliers, error: suppliersError } = await supabase.from('suppliers').select('*');
-            if (suppliersError) console.error('Error fetching suppliers:', suppliersError); else setSuppliers(suppliers as Supplier[]);
-
-            const { data: trips, error: tripsError } = await supabase.from('trips').select('*');
-            if (tripsError) console.error('Error fetching trips:', tripsError); else setTrips(trips as Trip[]);
-
-            const { data: expenses, error: expensesError } = await supabase.from('expenses').select('*');
-            if (expensesError) console.error('Error fetching expenses:', expensesError); else setExpenses(expenses as Expense[]);
-
-            const { data: owners, error: ownersError } = await supabase.from('owners').select('*');
-            if (ownersError) console.error('Error fetching owners:', ownersError); else setOwners(owners as Owner[]);
-
-            await refreshUsers();
-            await refreshBills();
+            if (driversRes.error) console.error('Error fetching drivers:', driversRes.error); else setDrivers(driversRes.data as Driver[]);
+            if (vehiclesRes.error) console.error('Error fetching vehicles:', vehiclesRes.error); else setVehicles(vehiclesRes.data as Vehicle[]);
+            if (customersRes.error) console.error('Error fetching customers:', customersRes.error); else setCustomers(customersRes.data as Customer[]);
+            if (citiesRes.error) console.error('Error fetching cities:', citiesRes.error); else setCities(citiesRes.data as City[]);
+            if (suppliersRes.error) console.error('Error fetching suppliers:', suppliersRes.error); else setSuppliers(suppliersRes.data as Supplier[]);
+            if (tripsRes.error) console.error('Error fetching trips:', tripsRes.error); else setTrips(tripsRes.data as Trip[]);
+            if (expensesRes.error) console.error('Error fetching expenses:', expensesRes.error); else setExpenses(expensesRes.data as Expense[]);
+            if (ownersRes.error) console.error('Error fetching owners:', ownersRes.error); else setOwners(ownersRes.data as Owner[]);
+            if (usersRes.error) console.error('Error fetching users:', usersRes.error); else setUsers(usersRes.data as User[]);
+            if (billsRes.error) console.error('Error fetching bills:', billsRes.error); else setSavedBills(billsRes.data as Bill[]);
         };
 
         fetchData();

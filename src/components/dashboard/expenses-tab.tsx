@@ -73,7 +73,7 @@ export default function ExpensesTab() {
   const activeTrips = trips.filter(t => t.status === 'active');
   const activeTripOptions = activeTrips.map(t => ({ value: t.id, label: `${t.id} (${t.vehicleReg})`}));
 
-  const isAdmin = loggedInUser?.permissions.admin;
+  const isAdmin = loggedInUser?.permissions?.admin;
 
   // Effect to load and setup expenses for the selected date and trips
   useEffect(() => {

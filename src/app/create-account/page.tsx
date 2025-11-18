@@ -5,142 +5,188 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useAuth } from '@/context/auth-context';
 import Link from 'next/link';
-import { Landmark, User, Lock, PartyPopper } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { User, Lock, CheckCircle2, ArrowLeft, ShieldAlert } from 'lucide-react';
+import { Logo } from '@/components/icons';
+import { useToast } from '@/hooks/use-toast';
 
 export default function CreateAccountPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const { createAccount } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
 
   const handleCreateAccount = async () => {
+    if (username.length !== 6 || password.length !== 6) {
+      setError('Username and password must be exactly 6 characters long.');
+      return;
+    }
+    setError('');
+    setIsLoading(true);
     const success = await createAccount(username, password);
     if (success) {
+      toast({
+        title: 'Account Request Sent',
+        description: 'Your request has been submitted for approval.',
+      });
       setIsSubmitted(true);
+    } else {
+      const errorMessage = 'Failed to create account. The username might already be taken.';
+      setError(errorMessage);
+      toast({
+        variant: 'destructive',
+        title: 'Account Creation Failed',
+        description: errorMessage,
+      });
     }
+    setIsLoading(false);
   };
-  
+
   if (isSubmitted) {
     return (
-        <div className="w-full min-h-screen grid grid-cols-1 lg:grid-cols-2">
-            <div className="flex items-center justify-center p-6 lg:p-10">
-                <Card className="w-full max-w-md mx-auto shadow-2xl rounded-2xl text-center">
-                    <CardHeader>
-                        <div className="flex justify-center mb-4">
-                            <PartyPopper className="h-16 w-auto text-green-500 animate-bounce" />
-                        </div>
-                        <CardTitle className="text-3xl font-bold tracking-tight">Request Sent!</CardTitle>
-                        <CardDescription className="text-muted-foreground">
-                            Your account request is now pending admin approval. You will be notified shortly.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Button 
-                            onClick={() => router.push('/login')} 
-                            className="w-full h-12 text-base font-semibold text-white bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 rounded-xl transition-transform transform hover:scale-105 shadow-lg"
-                        >
-                            Back to Login
-                        </Button>
-                    </CardContent>
-                </Card>
-            </div>
-            <div className="hidden lg:flex flex-col items-center justify-center bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 p-10 text-white relative overflow-hidden">
-                <div className="absolute inset-0 bg-repeat bg-center opacity-5" style={{backgroundImage: 'url(/path-to-your-pattern.svg)'}}></div>
-                <div className="z-10 text-center space-y-4">
-                    <Landmark className="h-24 w-auto mx-auto" />
-                    <h2 className="text-5xl font-bold tracking-tight">Join Our Network</h2>
-                    <p className="text-xl max-w-2xl mx-auto">
-                        Become a part of a revolutionary platform for logistics management.
-                    </p>
-                </div>
-            </div>
+      <div className="min-h-screen w-full flex items-center justify-center bg-background relative overflow-hidden">
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-accent/20 rounded-full blur-3xl" />
+
+        <div className="max-w-md w-full mx-4 bg-white/50 dark:bg-black/50 backdrop-blur-xl p-8 rounded-3xl border border-white/20 shadow-2xl text-center animate-in zoom-in duration-300">
+          <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 className="h-10 w-10 text-green-600 dark:text-green-400" />
+          </div>
+          <h2 className="text-3xl font-bold mb-4">Request Sent!</h2>
+          <p className="text-muted-foreground mb-8">
+            Your account request has been successfully submitted. An administrator
+            will review your application shortly.
+          </p>
+          <Button
+            onClick={() => router.push('/login')}
+            className="w-full h-12 rounded-xl text-lg font-medium bg-gradient-to-r from-primary to-accent hover:shadow-lg transition-all"
+          >
+            Return to Login
+          </Button>
         </div>
+      </div>
     );
   }
 
   return (
-    <div className="w-full min-h-screen grid grid-cols-1 lg:grid-cols-2">
-        <div className="flex items-center justify-center p-6 lg:p-10">
-            <Card className="w-full max-w-md mx-auto shadow-2xl rounded-2xl">
-                <CardHeader className="text-center">
-                    <div className="flex justify-center mb-4">
-                        <Landmark className="h-12 w-auto text-orange-500" />
-                    </div>
-                    <CardTitle className="text-3xl font-bold tracking-tight">Create Your Account</CardTitle>
-                    <CardDescription className="text-muted-foreground">
-                        Enter your details to request a new account.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-6">
-                    <div className="grid gap-4">
-                        <div className="relative">
-                            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                            <Input 
-                                id="username" 
-                                type="text" 
-                                placeholder="Username (1-6 lowercase letters)"
-                                required 
-                                value={username}
-                                onChange={(e) => {
-                                const value = e.target.value.toLowerCase().replace(/[^a-z]/g, '');
-                                setUsername(value.slice(0, 6));
-                                }}
-                                maxLength={6}
-                                className="pl-10 h-12 text-base rounded-xl focus:ring-2 focus:ring-orange-500/50"
-                            />
-                        </div>
-                        <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                            <Input 
-                                id="password" 
-                                type="password" 
-                                placeholder="Password (6-digit PIN)"
-                                required 
-                                value={password}
-                                onChange={(e) => {
-                                const value = e.target.value.replace(/[^0-9]/g, '');
-                                setPassword(value.slice(0, 6));
-                                }}
-                                maxLength={6}
-                                onKeyDown={(e) => e.key === 'Enter' && handleCreateAccount()}
-                                className="pl-10 h-12 text-base rounded-xl focus:ring-2 focus:ring-orange-500/50"
-                            />
-                        </div>
-                    </div>
-                    <Button 
-                        onClick={handleCreateAccount} 
-                        type="submit" 
-                        className="w-full h-12 text-base font-semibold text-white bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 rounded-xl transition-transform transform hover:scale-105 shadow-lg"
-                    >
-                        Request Account
-                    </Button>
-                    <div className="mt-4 text-center text-sm">
-                        Already have an account?{" "}
-                        <Link href="/login" className="font-semibold text-orange-600 hover:underline">
-                        Sign in
-                        </Link>
-                    </div>
-                </CardContent>
-            </Card>
+    <div className="min-h-screen w-full flex overflow-hidden bg-background">
+      {/* Left Side - Visual */}
+      <div className="hidden lg:flex w-1/2 relative bg-black items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1580674684081-7617fbf3d745?q=80&w=2574&auto=format&fit=crop')] bg-cover bg-center opacity-40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent" />
+
+        <div className="relative z-10 p-12 max-w-xl">
+          <div className="mb-6 inline-block px-4 py-1 rounded-full border border-white/20 bg-white/10 backdrop-blur-md text-sm font-medium text-white">
+            Join the network
+          </div>
+          <h2 className="text-5xl font-bold text-white mb-6 leading-tight">
+            Start Your <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
+              Journey
+            </span>
+          </h2>
+          <p className="text-lg text-gray-300 leading-relaxed">
+            Create an account to manage fleets, track expenses, and generate
+            comprehensive reports with modern efficiency.
+          </p>
         </div>
-        <div className="hidden lg:flex flex-col items-center justify-center bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 p-10 text-white relative overflow-hidden">
-            <div className="absolute inset-0 bg-repeat bg-center opacity-5" style={{backgroundImage: 'url(/path-to-your-pattern.svg)'}}></div>
-            <div className="z-10 text-center space-y-4">
-                <Landmark className="h-24 w-auto mx-auto animate-pulse" />
-                <h2 className="text-5xl font-bold tracking-tight">Join Our Network</h2>
-                <p className="text-xl max-w-2xl mx-auto">
-                    Become a part of an efficient and reliable transport management system.
-                </p>
-            </div>
-             <div className="absolute bottom-4 right-4 text-xs opacity-70">
-                &copy; {new Date().getFullYear()} Jugnoo Transport Network. All Rights Reserved.
-            </div>
+      </div>
+
+      {/* Right Side - Form */}
+      <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-12 lg:px-24 xl:px-32 relative z-10 bg-white/50 dark:bg-black/50 backdrop-blur-xl">
+        <div className="mb-8">
+          <Link
+            href="/login"
+            className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-8 group"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+            Back to Login
+          </Link>
+          <Logo className="h-10 w-auto text-primary mb-6" />
+          <h1 className="text-4xl font-headline font-bold tracking-tight mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
+            Create Account
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            Join Jugnoo Transport Network today.
+          </p>
         </div>
+
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <label htmlFor='username' className="text-sm font-medium text-foreground ml-1">Username</label>
+            <div className="relative group">
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transition-colors group-focus-within:text-primary z-10" />
+              <Input
+                id="username"
+                type="text"
+                placeholder="6 lowercase letters (e.g. 'johndoe')"
+                required
+                value={username}
+                onChange={(e) => {
+                  const value = e.target.value.toLowerCase().replace(/[^a-z]/g, '');
+                  setUsername(value.slice(0, 6));
+                }}
+                maxLength={6}
+                className="pl-12 h-14 rounded-xl border-muted-foreground/20 focus:border-primary/50 bg-white/80 dark:bg-black/80 backdrop-blur-sm shadow-sm transition-all"
+              />
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
+                {username.length}/6
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground ml-1">
+              Must be exactly 6 lowercase letters.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor='password' className="text-sm font-medium text-foreground ml-1">Password</label>
+            <div className="relative group">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transition-colors group-focus-within:text-primary z-10" />
+              <Input
+                id="password"
+                type="password"
+                placeholder="6-digit numeric PIN"
+                required
+                value={password}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^0-9]/g, '');
+                  setPassword(value.slice(0, 6));
+                }}
+                maxLength={6}
+                onKeyDown={(e) => e.key === 'Enter' && handleCreateAccount()}
+                className="pl-12 h-14 rounded-xl border-muted-foreground/20 focus:border-primary/50 bg-white/80 dark:bg-black/80 backdrop-blur-sm shadow-sm transition-all"
+              />
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
+                {password.length}/6
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground ml-1">
+              Must be exactly 6 digits.
+            </p>
+          </div>
+
+          {error && (
+            <div className="flex items-center space-x-2 text-destructive text-sm bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+              <ShieldAlert className="h-5 w-5" />
+              <p>{error}</p>
+            </div>
+          )}
+
+          <Button
+            onClick={handleCreateAccount}
+            type="submit"
+            disabled={isLoading || username.length !== 6 || password.length !== 6}
+            className="w-full h-14 text-lg font-semibold rounded-xl bg-gradient-to-r from-primary to-accent hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 mt-4"
+          >
+            {isLoading ? 'Requesting...' : 'Request Account'}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

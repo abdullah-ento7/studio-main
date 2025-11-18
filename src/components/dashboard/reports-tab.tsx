@@ -39,7 +39,7 @@ export default function ReportTab() {
   const [fromDate, setFromDate] = React.useState<Date>();
   const [toDate, setToDate] = React.useState<Date>();
 
-  const isAdmin = loggedInUser?.permissions.admin;
+  const isAdmin = loggedInUser?.permissions?.admin;
 
   const handleGenerateReport = (reportType: string, selectedItemId?: string, selectedItemLabel?: string) => {
     if (!fromDate || !toDate) {

@@ -40,7 +40,7 @@ interface EditExpenseDialogProps {
 
 export default function EditExpenseDialog({ isOpen, onClose, expense, onSave, suppliers }: EditExpenseDialogProps) {
   const { loggedInUser } = useAuth();
-  const isAdmin = loggedInUser?.permissions.admin;
+  const isAdmin = loggedInUser?.permissions?.admin;
 
   const [date, setDate] = React.useState<Date | undefined>(new Date(expense.date));
   const [category, setCategory] = React.useState<ExpenseCategory>(expense.category);

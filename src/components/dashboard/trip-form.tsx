@@ -54,7 +54,7 @@ export default function TripForm({ trip, onSave, cities, customers, vehicles, is
   const [sapNumber, setSapNumber] = useState(trip.sapNumber || '');
   const [tokenNumber, setTokenNumber] = useState(trip.tokenNumber || '');
 
-  const isAdmin = loggedInUser?.permissions.admin;
+  const isAdmin = loggedInUser?.permissions?.admin;
 
   const vehicle = vehicles.find(v => v.id === trip.vehicleId);
   const isOilTanker = vehicle?.type === 'Oil Tanker';

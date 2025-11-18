@@ -34,13 +34,13 @@ export default function MainLayout() {
     const { permissions } = loggedInUser;
     
     const getDefaultTab = () => {
-        if (permissions.dashboard) return 'dashboard';
-        if (permissions.general) return 'general';
-        if (permissions.expenses) return 'expenses';
-        if (permissions.reports) return 'reports';
-        if (permissions.billing) return 'billing';
-        if (permissions.edit) return 'edit';
-        if (permissions.admin) return 'admin';
+        if (permissions?.dashboard) return 'dashboard';
+        if (permissions?.general) return 'general';
+        if (permissions?.expenses) return 'expenses';
+        if (permissions?.reports) return 'reports';
+        if (permissions?.billing) return 'billing';
+        if (permissions?.edit) return 'edit';
+        if (permissions?.admin) return 'admin';
         return '';
     }
 
@@ -50,43 +50,43 @@ export default function MainLayout() {
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
         <Tabs defaultValue={getDefaultTab()} className="w-full">
           <TabsList>
-             {permissions.dashboard && (
+             {permissions?.dashboard && (
                 <TabsTrigger value="dashboard">
                     <Home className="mr-2" />
                     Dashboard
                 </TabsTrigger>
              )}
-            {permissions.general && (
+            {permissions?.general && (
                 <TabsTrigger value="general">
                     <LayoutGrid className="mr-2" />
                     General
                 </TabsTrigger>
             )}
-            {permissions.expenses && (
+            {permissions?.expenses && (
                 <TabsTrigger value="expenses">
                     <PlusCircle className="mr-2" />
                     Expenses
                 </TabsTrigger>
             )}
-            {permissions.reports && (
+            {permissions?.reports && (
                 <TabsTrigger value="reports">
                     <BarChart className="mr-2" />
                     Reports
                 </TabsTrigger>
             )}
-            {permissions.billing && (
+            {permissions?.billing && (
                 <TabsTrigger value="billing">
                     <FileCheck2 className="mr-2" />
                     Billing
                 </TabsTrigger>
             )}
-            {permissions.edit && (
+            {permissions?.edit && (
                 <TabsTrigger value="edit">
                     <Pencil className="mr-2" />
                     Edit
                 </TabsTrigger>
             )}
-            {permissions.admin && (
+            {permissions?.admin && (
                 <>
                     <TabsTrigger value="admin">
                         <UserCog className="mr-2" />
@@ -100,37 +100,37 @@ export default function MainLayout() {
             )}
           </TabsList>
           
-          {permissions.dashboard && (
+          {permissions?.dashboard && (
             <TabsContent value="dashboard" className="mt-4">
                 <DashboardTab />
             </TabsContent>
           )}
-          {permissions.general && (
+          {permissions?.general && (
             <TabsContent value="general" className="mt-4">
                 <GeneralTab />
             </TabsContent>
           )}
-          {permissions.expenses && (
+          {permissions?.expenses && (
              <TabsContent value="expenses" className="mt-4">
                 <ExpensesTab />
             </TabsContent>
           )}
-          {permissions.reports && (
+          {permissions?.reports && (
             <TabsContent value="reports" className="mt-4">
                 <ReportsTab />
             </TabsContent>
           )}
-          {permissions.billing && (
+          {permissions?.billing && (
             <TabsContent value="billing" className="mt-4">
                 <BillingTab />
             </TabsContent>
           )}
-          {permissions.edit && (
+          {permissions?.edit && (
             <TabsContent value="edit" className="mt-4">
                 <EditTab />
             </TabsContent>
           )}
-          {permissions.admin && (
+          {permissions?.admin && (
             <>
                 <TabsContent value="admin" className="mt-4">
                     <AdminTab />

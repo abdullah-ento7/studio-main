@@ -118,11 +118,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const createAccount = async (username: string, password: string): Promise<boolean> => {
-    const usernameRegex = /^[a-z]{1,6}$/;
+    // Strict 6-letter check
+    const usernameRegex = /^[a-z]{6}$/;
     if (!usernameRegex.test(username)) {
       toast({
         title: 'Invalid Username',
-        description: 'Username must be 1-6 lowercase letters and contain no numbers or special characters.',
+        description: 'Username must be exactly 6 lowercase letters.',
         variant: 'destructive',
       });
       return false;
@@ -158,11 +159,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const userStatus = isFirstUser ? 'approved' : 'pending';
 
     if (isFirstUser) {
-        const adminPasswordRegex = /^[a-zA-Z0-9]{1,6}$/;
+        const adminPasswordRegex = /^[a-zA-Z0-9]{6}$/;
         if (!adminPasswordRegex.test(password)) {
             toast({
                 title: 'Invalid Admin Password',
-                description: 'Admin password must be 1-6 characters and can contain letters and digits.',
+                description: 'Admin password must be 6 characters.',
                 variant: 'destructive',
             });
             return false;
@@ -219,8 +220,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (userError) {
       console.error('Error creating user profile:', userError.message);
       toast({ title: 'Account Creation Failed', description: `Server error creating profile: ${userError.message}`, variant: 'destructive' });
-      // Important: Since we can't easily delete the auth user from client-side,
-      // this will result in an "orphaned" auth user. The improved login flow will handle guiding the user.
       return false;
     }
 
