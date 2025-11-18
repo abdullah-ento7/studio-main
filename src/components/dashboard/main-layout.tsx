@@ -9,13 +9,16 @@ import {
   Briefcase,
   Home,
   UserCog,
-  CheckSquare
+  CheckSquare,
+  BarChart,
+  FileCheck2,
 } from 'lucide-react';
 import Header from './header';
 import GeneralTab from './general-tab';
 import ExpensesTab from './expenses-tab';
 import EditTab from './edit-tab';
-import FinancialsTab from './financials-tab';
+import ReportsTab from './reports-tab';
+import BillingTab from './billing-tab';
 import DashboardTab from './dashboard-tab';
 import AdminTab from './admin-tab';
 import ApprovalsTab from './approvals-tab';
@@ -25,7 +28,7 @@ export default function MainLayout() {
     const { loggedInUser } = useAuth();
 
     if (!loggedInUser) {
-        return null; 
+        return null;
     }
 
     const { permissions } = loggedInUser;
@@ -34,7 +37,8 @@ export default function MainLayout() {
         if (permissions.dashboard) return 'dashboard';
         if (permissions.general) return 'general';
         if (permissions.expenses) return 'expenses';
-        if (permissions.financials) return 'financials';
+        if (permissions.reports) return 'reports';
+        if (permissions.billing) return 'billing';
         if (permissions.edit) return 'edit';
         if (permissions.admin) return 'admin';
         return '';
@@ -64,10 +68,16 @@ export default function MainLayout() {
                     Expenses
                 </TabsTrigger>
             )}
-            {permissions.financials && (
-                <TabsTrigger value="financials">
-                    <Briefcase className="mr-2" />
-                    Financials
+            {permissions.reports && (
+                <TabsTrigger value="reports">
+                    <BarChart className="mr-2" />
+                    Reports
+                </TabsTrigger>
+            )}
+            {permissions.billing && (
+                <TabsTrigger value="billing">
+                    <FileCheck2 className="mr-2" />
+                    Billing
                 </TabsTrigger>
             )}
             {permissions.edit && (
@@ -105,9 +115,14 @@ export default function MainLayout() {
                 <ExpensesTab />
             </TabsContent>
           )}
-          {permissions.financials && (
-            <TabsContent value="financials" className="mt-4">
-                <FinancialsTab />
+          {permissions.reports && (
+            <TabsContent value="reports" className="mt-4">
+                <ReportsTab />
+            </TabsContent>
+          )}
+          {permissions.billing && (
+            <TabsContent value="billing" className="mt-4">
+                <BillingTab />
             </TabsContent>
           )}
           {permissions.edit && (
