@@ -8,6 +8,7 @@
     pkgs.nodejs_20
     pkgs.zulu
     pkgs.supabase-cli
+    pkgs.deno
   ];
   # Sets environment variables in the workspace
   env = {};
@@ -17,7 +18,7 @@
     # Disabling because we are using prod backends right now
     detect = false;
     projectId = "demo-app";
-    services = ["auth" "firestore"];
+    services = ["auth", "firestore"];
   };
   services.docker.enable = true;
   idx = {
@@ -37,7 +38,7 @@
       enable = true;
       previews = {
         web = {
-          command = ["npm" "run" "dev" "--" "--port" "$PORT" "--hostname" "0.0.0.0"];
+          command = ["npm", "run", "dev", "--", "--port", "$PORT", "--hostname", "0.0.0.0"];
           manager = "web";
         };
       };
