@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/context/auth-context';
 import Link from 'next/link';
-import { Landmark } from 'lucide-react';
+import { Landmark, User, Lock } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -24,61 +25,76 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="w-full lg:grid lg:min-h-[100vh] lg:grid-cols-2 xl:min-h-[100vh]">
-      <div className="flex items-center justify-center py-12">
-        <div className="mx-auto grid w-[350px] gap-6">
-          <div className="grid gap-2 text-center">
-            <h1 className="text-3xl font-bold">Login</h1>
-            <p className="text-balance text-muted-foreground">
-              Enter your username below to login to your account
-            </p>
-          </div>
-          <div className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                type="text"
-                placeholder="Your username"
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
+    <div className="w-full min-h-screen grid grid-cols-1 lg:grid-cols-2">
+      <div className="flex items-center justify-center p-6 lg:p-10">
+        <Card className="w-full max-w-md mx-auto shadow-2xl rounded-2xl">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+                <Landmark className="h-12 w-auto text-orange-500" />
             </div>
-            <div className="grid gap-2">
-              <div className="flex items-center">
-                <Label htmlFor="password">Password</Label>
+            <CardTitle className="text-3xl font-bold tracking-tight">Welcome Back</CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Enter your credentials to access your account.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-6">
+            <div className="grid gap-4">
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="username"
+                  type="text"
+                  placeholder="Username"
+                  required
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="pl-10 h-12 text-base rounded-xl focus:ring-2 focus:ring-orange-500/50"
+                />
               </div>
-              <Input 
-                id="password" 
-                type="password" 
-                placeholder="Your password"
-                required 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-              />
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input 
+                  id="password" 
+                  type="password" 
+                  placeholder="Password"
+                  required 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                  className="pl-10 h-12 text-base rounded-xl focus:ring-2 focus:ring-orange-500/50"
+                />
+              </div>
             </div>
-            <Button type="submit" className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 text-white hover:from-orange-600 hover:to-yellow-600" onClick={handleLogin}>
+            <Button 
+                type="submit" 
+                className="w-full h-12 text-base font-semibold text-white bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 rounded-xl transition-transform transform hover:scale-105 shadow-lg"
+                onClick={handleLogin}
+            >
               Login
             </Button>
-          </div>
-          <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{' '}
-            <Link href="/create-account" className="underline">
-              Sign up
-            </Link>
-          </div>
-        </div>
+            <div className="mt-4 text-center text-sm">
+              Don't have an account?{' '}
+              <Link href="/create-account" className="font-semibold text-orange-600 hover:underline">
+                Sign up
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-      <div className="hidden bg-gradient-to-br from-orange-400 to-yellow-500 lg:flex lg:flex-col items-center justify-center space-y-4 p-10">
-        <Landmark className="h-20 w-auto text-white" />
-        <h2 className="text-4xl font-bold text-center text-white">
-          Streamline Your Operations with Jugnoo Transport Network
-        </h2>
-        <p className="text-lg text-center text-white/90">
-          Efficiently manage your fleet, track shipments, and gain valuable insights to drive your business forward.
-        </p>
+      <div className="hidden lg:flex flex-col items-center justify-center bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 p-10 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-repeat bg-center opacity-5" style={{backgroundImage: 'url(/path-to-your-pattern.svg)'}}></div>
+        <div className="z-10 text-center space-y-4">
+          <Landmark className="h-24 w-auto mx-auto animate-bounce" />
+          <h2 className="text-5xl font-bold tracking-tight">
+            Jugnoo Transport Network
+          </h2>
+          <p className="text-xl max-w-2xl mx-auto">
+            Your trusted partner in logistics. Streamlined, efficient, and always on time.
+          </p>
+        </div>
+        <div className="absolute bottom-4 right-4 text-xs opacity-70">
+          &copy; {new Date().getFullYear()} Jugnoo Transport Network. All Rights Reserved.
+        </div>
       </div>
     </div>
   );

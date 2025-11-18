@@ -7,9 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/context/auth-context';
-import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { Landmark } from 'lucide-react';
+import { Landmark, User, Lock, PartyPopper } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 export default function CreateAccountPage() {
   const [username, setUsername] = useState('');
@@ -17,127 +17,129 @@ export default function CreateAccountPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const { createAccount } = useAuth();
   const router = useRouter();
-  const { toast } = useToast();
 
   const handleCreateAccount = async () => {
-    const usernameRegex = /^[a-z]{1,6}$/;
-    const passwordRegex = /^[0-9]{6}$/;
-
-    if (!usernameRegex.test(username)) {
-      toast({
-        title: 'Invalid Username',
-        description: 'Username must be 1-6 lowercase letters and contain no numbers or special characters.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!passwordRegex.test(password)) {
-      toast({
-        title: 'Invalid Password',
-        description: 'Password must be exactly 6 digits.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
     const success = await createAccount(username, password);
     if (success) {
       setIsSubmitted(true);
-    } else {
-      // The toast for failure is already handled in the auth context
     }
   };
   
   if (isSubmitted) {
     return (
-        <div className="w-full lg:grid lg:min-h-[100vh] lg:grid-cols-2 xl:min-h-[100vh]">
-          <div className="flex items-center justify-center py-12">
-            <div className="mx-auto grid w-[350px] gap-6 text-center">
-                <h1 className="text-3xl font-bold">Request Sent</h1>
-                <p className="text-balance text-muted-foreground">
-                    Your account request has been sent to the admin for approval. You will be notified upon approval.
-                </p>
-                <Button onClick={() => router.push('/login')} className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 text-white hover:from-orange-600 hover:to-yellow-600">
-                    Back to Login
-                </Button>
+        <div className="w-full min-h-screen grid grid-cols-1 lg:grid-cols-2">
+            <div className="flex items-center justify-center p-6 lg:p-10">
+                <Card className="w-full max-w-md mx-auto shadow-2xl rounded-2xl text-center">
+                    <CardHeader>
+                        <div className="flex justify-center mb-4">
+                            <PartyPopper className="h-16 w-auto text-green-500 animate-bounce" />
+                        </div>
+                        <CardTitle className="text-3xl font-bold tracking-tight">Request Sent!</CardTitle>
+                        <CardDescription className="text-muted-foreground">
+                            Your account request is now pending admin approval. You will be notified shortly.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Button 
+                            onClick={() => router.push('/login')} 
+                            className="w-full h-12 text-base font-semibold text-white bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 rounded-xl transition-transform transform hover:scale-105 shadow-lg"
+                        >
+                            Back to Login
+                        </Button>
+                    </CardContent>
+                </Card>
             </div>
-          </div>
-          <div className="hidden bg-gradient-to-br from-orange-400 to-yellow-500 lg:flex lg:flex-col items-center justify-center space-y-4 p-10">
-            <Landmark className="h-20 w-auto text-white" />
-            <h2 className="text-4xl font-bold text-center text-white">
-              Join Our Network
-            </h2>
-            <p className="text-lg text-center text-white/90">
-              Become a part of an efficient and reliable transport management system.
-            </p>
-          </div>
+            <div className="hidden lg:flex flex-col items-center justify-center bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 p-10 text-white relative overflow-hidden">
+                <div className="absolute inset-0 bg-repeat bg-center opacity-5" style={{backgroundImage: 'url(/path-to-your-pattern.svg)'}}></div>
+                <div className="z-10 text-center space-y-4">
+                    <Landmark className="h-24 w-auto mx-auto" />
+                    <h2 className="text-5xl font-bold tracking-tight">Join Our Network</h2>
+                    <p className="text-xl max-w-2xl mx-auto">
+                        Become a part of a revolutionary platform for logistics management.
+                    </p>
+                </div>
+            </div>
         </div>
     );
   }
 
   return (
-    <div className="w-full lg:grid lg:min-h-[100vh] lg:grid-cols-2 xl:min-h-[100vh]">
-        <div className="flex items-center justify-center py-12">
-            <div className="mx-auto grid w-[350px] gap-6">
-              <div className="grid gap-2 text-center">
-                <h1 className="text-3xl font-bold">Create an account</h1>
-                <p className="text-balance text-muted-foreground">
-                  Enter your details below to request a new account.
-                </p>
-              </div>
-              <div className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="username">Username</Label>
-                  <Input 
-                    id="username" 
-                    type="text" 
-                    placeholder="Up to 6 lowercase letters"
-                    required 
-                    value={username}
-                    onChange={(e) => {
-                      const value = e.target.value.toLowerCase().replace(/[^a-z]/g, '');
-                      setUsername(value.slice(0, 6));
-                    }}
-                    maxLength={6}
-                   />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input 
-                    id="password" 
-                    type="password" 
-                    placeholder="6-digit PIN"
-                    required 
-                    value={password}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/[^0-9]/g, '');
-                      setPassword(value.slice(0, 6));
-                    }}
-                    maxLength={6}
-                    onKeyDown={(e) => e.key === 'Enter' && handleCreateAccount()}
-                  />
-                </div>
-                <Button onClick={handleCreateAccount} type="submit" className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 text-white hover:from-orange-600 hover:to-yellow-600">
-                  Request Account
-                </Button>
-              </div>
-              <div className="mt-4 text-center text-sm">
-                Already have an account?{" "}
-                <Link href="/login" className="underline">
-                  Sign in
-                </Link>
-              </div>
-            </div>
+    <div className="w-full min-h-screen grid grid-cols-1 lg:grid-cols-2">
+        <div className="flex items-center justify-center p-6 lg:p-10">
+            <Card className="w-full max-w-md mx-auto shadow-2xl rounded-2xl">
+                <CardHeader className="text-center">
+                    <div className="flex justify-center mb-4">
+                        <Landmark className="h-12 w-auto text-orange-500" />
+                    </div>
+                    <CardTitle className="text-3xl font-bold tracking-tight">Create Your Account</CardTitle>
+                    <CardDescription className="text-muted-foreground">
+                        Enter your details to request a new account.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-6">
+                    <div className="grid gap-4">
+                        <div className="relative">
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                            <Input 
+                                id="username" 
+                                type="text" 
+                                placeholder="Username (1-6 lowercase letters)"
+                                required 
+                                value={username}
+                                onChange={(e) => {
+                                const value = e.target.value.toLowerCase().replace(/[^a-z]/g, '');
+                                setUsername(value.slice(0, 6));
+                                }}
+                                maxLength={6}
+                                className="pl-10 h-12 text-base rounded-xl focus:ring-2 focus:ring-orange-500/50"
+                            />
+                        </div>
+                        <div className="relative">
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                            <Input 
+                                id="password" 
+                                type="password" 
+                                placeholder="Password (6-digit PIN)"
+                                required 
+                                value={password}
+                                onChange={(e) => {
+                                const value = e.target.value.replace(/[^0-9]/g, '');
+                                setPassword(value.slice(0, 6));
+                                }}
+                                maxLength={6}
+                                onKeyDown={(e) => e.key === 'Enter' && handleCreateAccount()}
+                                className="pl-10 h-12 text-base rounded-xl focus:ring-2 focus:ring-orange-500/50"
+                            />
+                        </div>
+                    </div>
+                    <Button 
+                        onClick={handleCreateAccount} 
+                        type="submit" 
+                        className="w-full h-12 text-base font-semibold text-white bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 rounded-xl transition-transform transform hover:scale-105 shadow-lg"
+                    >
+                        Request Account
+                    </Button>
+                    <div className="mt-4 text-center text-sm">
+                        Already have an account?{" "}
+                        <Link href="/login" className="font-semibold text-orange-600 hover:underline">
+                        Sign in
+                        </Link>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
-        <div className="hidden bg-gradient-to-br from-orange-400 to-yellow-500 lg:flex lg:flex-col items-center justify-center space-y-4 p-10">
-            <Landmark className="h-20 w-auto text-white" />
-            <h2 className="text-4xl font-bold text-center text-white">
-              Join Our Network
-            </h2>
-            <p className="text-lg text-center text-white/90">
-              Become a part of an efficient and reliable transport management system.
-            </p>
+        <div className="hidden lg:flex flex-col items-center justify-center bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 p-10 text-white relative overflow-hidden">
+            <div className="absolute inset-0 bg-repeat bg-center opacity-5" style={{backgroundImage: 'url(/path-to-your-pattern.svg)'}}></div>
+            <div className="z-10 text-center space-y-4">
+                <Landmark className="h-24 w-auto mx-auto animate-pulse" />
+                <h2 className="text-5xl font-bold tracking-tight">Join Our Network</h2>
+                <p className="text-xl max-w-2xl mx-auto">
+                    Become a part of an efficient and reliable transport management system.
+                </p>
+            </div>
+             <div className="absolute bottom-4 right-4 text-xs opacity-70">
+                &copy; {new Date().getFullYear()} Jugnoo Transport Network. All Rights Reserved.
+            </div>
         </div>
     </div>
   );
