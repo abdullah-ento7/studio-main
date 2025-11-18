@@ -117,7 +117,7 @@ export default function CreateAccountPage() {
                 required
                 value={username}
                 onChange={(e) => {
-                  const value = e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '');
+                  const value = e.target.value.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
                   setUsername(value.slice(0, 6));
                 }}
                 maxLength={6}
