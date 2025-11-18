@@ -186,7 +186,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         data: {
           username: username,
         },
-        email_confirm: true,
+        email_confirm: false,
       }
     });
 
