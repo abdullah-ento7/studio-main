@@ -16,7 +16,6 @@ interface AuthContextProps {
   fetchUsers: () => void;
   updateUserStatus: (userId: string, status: 'approved' | 'rejected') => Promise<void>;
   updateUser: (user: User) => Promise<void>;
-  signInWithGithub: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -110,16 +109,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     await supabase.auth.signOut();
     return false;
-  };
-  
-  const signInWithGithub = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'github',
-    });
-    if (error) {
-      console.error('Error signing in with GitHub:', error.message);
-      toast({ title: 'GitHub Sign-In Failed', description: error.message, variant: 'destructive' });
-    }
   };
 
   const logout = async () => {
@@ -240,7 +229,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     fetchUsers,
     updateUserStatus,
     updateUser,
-    signInWithGithub,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
