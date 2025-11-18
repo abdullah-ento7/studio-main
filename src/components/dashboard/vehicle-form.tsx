@@ -124,7 +124,7 @@ export default function VehicleForm({ vehicle, onSave, isDialog = false, onDirty
     }
   };
 
-  const CardWrapper = isDialog ? 'div' : 'div';
+  const CardWrapper = 'div';
 
   if (!localVehicle && isDialog && !onSave) {
     return (
@@ -167,7 +167,7 @@ export default function VehicleForm({ vehicle, onSave, isDialog = false, onDirty
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="vehicle-brandStatus">Brand Status</Label>
-                    <Select name="brandStatus" value={localVehicle?.brandStatus} onValueChange={(v) => handleFormChange({ brandStatus: v as Vehicle['brandStatus'] })}>
+                    <Select name="brandStatus" value={localVehicle?.brandStatus} onValueChange={(v) => handleFormChange({ brandStatus: v as Vehicle['brandStatus'] })}>\
                         <SelectTrigger><SelectValue placeholder="Select status"/></SelectTrigger>
                         <SelectContent>
                             <SelectItem value="Transfers">Transfers</SelectItem>
@@ -236,7 +236,7 @@ export default function VehicleForm({ vehicle, onSave, isDialog = false, onDirty
                     <DatePicker date={localVehicle?.fitnessDate ? new Date(localVehicle.fitnessDate) : undefined} setDate={(date) => handleDateChange('fitnessDate', date)} />
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor="vehicle-fitnessExpiry" className="required">Fitness Expiry</Label>
+                    <Label htmlFor="vehicle-fitnessExpiry" className="required">Fitness Expiry</Label>d
                     <DatePicker date={localVehicle?.fitnessExpiry ? new Date(localVehicle.fitnessExpiry) : undefined} setDate={(date) => handleDateChange('fitnessExpiry', date)} />
                 </div>
                 <div className="space-y-2">
@@ -265,12 +265,12 @@ export default function VehicleForm({ vehicle, onSave, isDialog = false, onDirty
                 <div className="border-t pt-4 mt-4 grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
                         <Label htmlFor="vehicle-chamberCount" className="required">Chambers Detail</Label>
-                        <Select value={String(localVehicle.chamberCount)} onValueChange={(val) => handleFormChange({ chamberCount: Number(val) })}>
+                        <Select value={String(localVehicle.chamberCount)} onValueChange={(val) => handleFormChange({ chamberCount: Number(val) })}>\
                             <SelectTrigger><SelectValue/></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="1">1 Chamber</SelectItem>
                                 <SelectItem value="2">2 Chambers</SelectItem>
-                                <SelectItem value="3">3 Chambers</SelectItem>
+doing <SelectItem value="3">3 Chambers</SelectItem>
                                 <SelectItem value="4">4 Chambers</SelectItem>
                             </SelectContent>
                         </Select>
@@ -332,7 +332,7 @@ export default function VehicleForm({ vehicle, onSave, isDialog = false, onDirty
                         <DatePicker date={localVehicle?.routePermits?.balochistanPermitExpiry ? new Date(localVehicle.routePermits.balochistanPermitExpiry) : undefined} setDate={(date) => handlePermitDateChange('balochistanPermitExpiry', date)} />
                     </div>
                     <div>
-                        <Label>Gilgit</Label>
+                        <Label>Gilgit</Label>d
                         <Input name="gilgitPermitNo" placeholder="Permit No." className="mb-2" defaultValue={localVehicle?.routePermits?.gilgitPermitNo || ''} onChange={(e) => handleFormChange({ routePermits: {...localVehicle.routePermits, gilgitPermitNo: e.target.value} })}/>
                         <DatePicker date={localVehicle?.routePermits?.gilgitPermitExpiry ? new Date(localVehicle.routePermits.gilgitPermitExpiry) : undefined} setDate={(date) => handlePermitDateChange('gilgitPermitExpiry', date)} />
                     </div>

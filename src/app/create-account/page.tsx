@@ -51,20 +51,24 @@ export default function CreateAccountPage() {
   
   if (isSubmitted) {
     return (
-        <div className="flex min-h-screen flex-col items-center justify-center bg-muted/40">
-            <Card className="w-full max-w-sm text-center">
+        <div 
+          className="flex min-h-screen flex-col items-center justify-center bg-cover bg-center p-4" 
+          style={{ backgroundImage: "url('https://source.unsplash.com/random/?transport')" }}
+        >
+            <div className="absolute inset-0 bg-black opacity-50"></div>
+            <Card className="relative z-10 w-full max-w-md bg-white/90 backdrop-blur-sm dark:bg-gray-950/90 text-center">
                 <CardHeader>
-                    <div className="flex justify-center items-center mb-4">
-                      <Logo className="h-16 w-auto text-primary" />
+                    <div className="flex justify-center items-center mb-6">
+                      <Logo className="h-20 w-auto text-orange-500" />
                     </div>
-                    <CardTitle className="text-3xl font-bold">Request Sent</CardTitle>
-                    <CardDescription>Your account request has been sent to the admin for approval.</CardDescription>
+                    <CardTitle className="text-4xl font-bold text-gray-800 dark:text-white">Request Sent</CardTitle>
+                    <CardDescription className="text-gray-600 dark:text-gray-300">Your account request has been sent to the admin for approval.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <p className='text-muted-foreground'>You will be notified once your account is approved. You can then log in.</p>
+                    <p className='text-gray-600 dark:text-gray-400'>You will be notified once your account is approved. You can then log in.</p>
                 </CardContent>
                 <CardFooter className="flex-col items-center gap-4">
-                    <Button className="w-full" onClick={() => router.push('/login')}>
+                    <Button className="w-full py-3 text-lg bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg" onClick={() => router.push('/login')}>
                         Back to Login
                     </Button>
                 </CardFooter>
@@ -74,55 +78,59 @@ export default function CreateAccountPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-muted/40">
-      <Card className="w-full max-w-sm">
+    <div 
+      className="flex min-h-screen flex-col items-center justify-center bg-cover bg-center p-4" 
+      style={{ backgroundImage: "url('https://source.unsplash.com/random/?transport')" }}
+    >
+        <div className="absolute inset-0 bg-black opacity-50"></div>
+      <Card className="relative z-10 w-full max-w-md bg-white/90 backdrop-blur-sm dark:bg-gray-950/90">
         <CardHeader className="text-center">
-            <div className="flex justify-center items-center mb-4">
-              <Logo className="h-16 w-auto text-primary" />
+            <div className="flex justify-center items-center mb-6">
+              <Logo className="h-20 w-auto text-orange-500" />
             </div>
-          <CardTitle className="text-3xl font-bold">Create Account</CardTitle>
-          <CardDescription>Request a new account from the administrator.</CardDescription>
+          <CardTitle className="text-4xl font-bold text-gray-800 dark:text-white">Create Account</CardTitle>
+          <CardDescription className="text-gray-600 dark:text-gray-300">Request a new account from the administrator.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                type="text"
-                placeholder="Enter your desired username"
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Create a strong password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleCreateAccount()}
-              />
-            </div>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="username" className="text-lg text-gray-700 dark:text-gray-300">Username</Label>
+            <Input
+              id="username"
+              type="text"
+              placeholder="Enter your desired username"
+              required
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full px-4 py-3 text-lg border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password" className="text-lg text-gray-700 dark:text-gray-300">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="Create a strong password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleCreateAccount()}
+              className="w-full px-4 py-3 text-lg border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+            />
           </div>
         </CardContent>
         <CardFooter className="flex-col items-center gap-4">
+            <Button className="w-full py-3 text-lg bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg" onClick={handleCreateAccount}>
+                Request Account
+            </Button>
             <div className="text-center text-sm">
-                <Link href="/login" className="text-muted-foreground hover:text-primary">
+                <Link href="/login" className="text-gray-600 hover:text-orange-500 dark:text-gray-400 dark:hover:text-orange-400">
                     Already have an account? Sign in
                 </Link>
             </div>
-            <Button className="w-full" onClick={handleCreateAccount}>
-                Request Account
-            </Button>
         </CardFooter>
       </Card>
-      <div className="mt-8 text-center text-sm text-muted-foreground">
-        © {new Date().getFullYear()} <a href="https://jtn.com.pk" target="_blank" rel="noopener noreferrer" className="hover:text-primary">Jugnoo Transport Network</a>
+      <div className="mt-8 text-center text-sm text-white/80">
+        © {new Date().getFullYear()} <a href="https://jtn.com.pk" target="_blank" rel="noopener noreferrer" className="hover:text-orange-400">Jugnoo Transport Network</a>
       </div>
     </div>
   );
