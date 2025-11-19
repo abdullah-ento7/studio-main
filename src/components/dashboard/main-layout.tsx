@@ -49,50 +49,50 @@ export default function MainLayout() {
       <Header />
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
         <Tabs defaultValue={getDefaultTab()} className="w-full">
-          <TabsList>
+          <TabsList className="grid w-full grid-cols-1 h-auto sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 xl:grid-cols-9">
              {permissions?.dashboard && (
-                <TabsTrigger value="dashboard">
+                <TabsTrigger value="dashboard" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md">
                     <Home className="mr-2" />
                     Dashboard
                 </TabsTrigger>
              )}
             {permissions?.general && (
-                <TabsTrigger value="general">
+                <TabsTrigger value="general" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md">
                     <LayoutGrid className="mr-2" />
                     General
                 </TabsTrigger>
             )}
             {permissions?.expenses && (
-                <TabsTrigger value="expenses">
+                <TabsTrigger value="expenses" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md">
                     <PlusCircle className="mr-2" />
                     Expenses
                 </TabsTrigger>
             )}
             {permissions?.reports && (
-                <TabsTrigger value="reports">
+                <TabsTrigger value="reports" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md">
                     <BarChart className="mr-2" />
                     Reports
                 </TabsTrigger>
             )}
             {permissions?.billing && (
-                <TabsTrigger value="billing">
+                <TabsTrigger value="billing" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md">
                     <FileCheck2 className="mr-2" />
                     Billing
                 </TabsTrigger>
             )}
             {permissions?.edit && (
-                <TabsTrigger value="edit">
+                <TabsTrigger value="edit" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md">
                     <Pencil className="mr-2" />
                     Edit
                 </TabsTrigger>
             )}
             {permissions?.admin && (
                 <>
-                    <TabsTrigger value="admin">
+                    <TabsTrigger value="admin" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md">
                         <UserCog className="mr-2" />
                         Admin
                     </TabsTrigger>
-                    <TabsTrigger value="approvals">
+                    <TabsTrigger value="approvals" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md">
                         <CheckSquare className="mr-2" />
                         Approvals
                     </TabsTrigger>

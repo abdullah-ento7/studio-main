@@ -98,10 +98,10 @@ export default function CreateAccountPage() {
           </Link>
           <Logo className="h-10 w-auto text-primary mb-6" />
           <h1 className="text-4xl font-headline font-bold tracking-tight mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
-            Create Account
+            JTN Logistics
           </h1>
           <p className="text-muted-foreground text-lg">
-            Join Jugnoo Transport Network today.
+            Create an account to get started.
           </p>
         </div>
 
@@ -168,6 +168,13 @@ export default function CreateAccountPage() {
             {isLoading ? 'Requesting...' : 'Request Account'}
           </Button>
         </div>
+
+        <div className="mt-8 text-center">
+          <a href="https://jtn.com.pk" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+            Visit our website
+          </a>
+        </div>
+
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
 import type { User } from '@/lib/types';
 import { useRouter } from 'next/navigation';
+import { fetchById, updateRecord, fetchData as fetchTableData } from '@/lib/data';
 
 type UserStatus = "approved" | "pending" | "disabled";
 
@@ -40,11 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
 
         if (session) {
-          const { data: userProfile, error: profileError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
+            const { data: userProfile, error: profileError } = await fetchById<User>('users', session.user.id);
 
           if (profileError) {
             console.error("Error fetching user profile:", profileError.message);
@@ -78,11 +75,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       setLoading(true);
       if (event === 'SIGNED_IN' && session) {
-        const { data: userProfile } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
+        const { data: userProfile } = await fetchById<User>('users', session.user.id);
         setUser(userProfile as User || null);
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
@@ -98,15 +91,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [toast, router]);
 
   const login = async (username: string, password: string): Promise<boolean> => {
-    const email = `${username}@jtn.com.pk`;
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
 
-    if (error) {
-      console.error("Login failed:", error.message);
-      toast({ title: 'Login Failed', description: 'Invalid username or password.', variant: 'destructive' });
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast({ title: 'Login Failed', description: data.message || 'Invalid username or password.', variant: 'destructive' });
+        return false;
+      }
+
+      const { error: sessionError } = await supabase.auth.setSession(data.session);
+
+      if (sessionError) {
+          console.error("Error setting session:", sessionError.message);
+          toast({ title: 'Login Failed', description: 'Could not establish a session.', variant: 'destructive' });
+          return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Login error:', error);
+      toast({ title: 'Login Failed', description: 'An unexpected error occurred.', variant: 'destructive' });
       return false;
     }
-    return true;
   };
 
   const logout = async () => {
@@ -134,67 +148,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return false;
     }
 
-    const email = `${username}@jtn.com.pk`;
-
-    const { data: existingUsers, error: existingUserError } = await supabase
-      .from('users')
-      .select('username')
-      .eq('username', username);
-
-    if (existingUserError) {
-      console.error('Error checking for existing users:', existingUserError.message);
-      toast({ title: 'Account Creation Failed', description: 'An unexpected error occurred while checking username.', variant: 'destructive' });
-      return false;
-    }
-
-    if (existingUsers && existingUsers.length > 0) {
-      toast({ title: 'Account Creation Failed', description: 'Username is already taken.', variant: 'destructive' });
-      return false;
-    }
-
-    const { data: allUsers, error: allUsersError } = await supabase.from('users').select('id');
-    if (allUsersError) {
-      console.error('Error fetching user count:', allUsersError.message);
-      toast({ title: 'Account Creation Failed', description: 'An unexpected error occurred while setting up account type.', variant: 'destructive' });
-      return false;
-    }
-
-    const isFirstUser = allUsers.length === 0;
-    const userRole = isFirstUser ? 'admin' : 'user';
-    const userStatus = isFirstUser ? 'approved' : 'pending';
-
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          username,
-          role: userRole,
-          status: userStatus,
-          permissions: { admin: userRole === 'admin' },
+    try {
+      const response = await fetch('/api/create-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      },
-    });
+        body: JSON.stringify({ username, password }),
+      });
 
-    if (authError) {
-      console.error('Error creating auth user:', authError.message);
-      toast({ title: 'Account Creation Failed', description: authError.message, variant: 'destructive' });
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast({ title: 'Account Creation Failed', description: data.message || 'An unknown error occurred.', variant: 'destructive' });
+        return false;
+      }
+
+      toast({ title: 'Account Created', description: 'Your account has been created successfully. You can now log in.' });
+      router.push('/login');
+      return true;
+    } catch (error) {
+      console.error('Error creating account:', error);
+      toast({ title: 'Account Creation Failed', description: 'An unexpected error occurred.', variant: 'destructive' });
       return false;
     }
-
-    if (!authData.user) {
-        console.error('No user data returned after sign up');
-        toast({ title: 'Account Creation Failed', description: 'An unknown error occurred.', variant: 'destructive' });
-        return false;
-    }
-    
-    return true;
   };
 
   const fetchUsers = useCallback(async () => {
     if (user?.role !== 'admin') return;
 
-    const { data, error } = await supabase.from('users').select('*');
+    const { data, error } = await fetchTableData<User>('users');
     if (error) {
       console.error('Error fetching users:', error.message);
       toast({ title: 'Error Fetching Users', description: 'Could not fetch user list.', variant: 'destructive' });
@@ -209,10 +192,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    const { error } = await supabase
-      .from('users')
-      .update({ status })
-      .eq('id', userId);
+    const { error } = await updateRecord('users', userId, { status });
 
     if (error) {
       console.error('Error updating user status:', error.message);

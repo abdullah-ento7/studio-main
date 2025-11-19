@@ -1,18 +1,44 @@
+import { supabase } from './supabaseClient';
+import { unstable_noStore as noStore } from 'next/cache';
+import { User, Trip, Customer, Vehicle, Owner, City, Expense, Bill, Supplier } from './types';
 
-import type { Driver, Vehicle, Customer, City, Expense, Supplier, Trip, Owner } from './types';
+// Generic fetch function
+async function fetchData<T>(table: string): Promise<{ data: T[] | null; error: any }> {
+  noStore();
+  const { data, error } = await supabase.from(table).select('*');
+  return { data: data as T[] | null, error };
+}
 
-export const owners: Owner[] = [];
+// Generic fetch by ID
+async function fetchById<T>(table: string, id: string): Promise<{ data: T | null; error: any }> {
+    noStore();
+    const { data, error } = await supabase.from(table).select('*').eq('id', id).single();
+    return { data: data as T | null, error };
+}
 
-export const drivers: Driver[] = [];
+// Generic create function
+async function createRecord<T>(table: string, record: Partial<T>): Promise<{ data: T[] | null; error: any }> {
+    const { data, error } = await supabase.from(table).insert([record]).select();
+    return { data, error };
+}
 
-export const vehicles: Vehicle[] = [];
+// Generic update function
+async function updateRecord<T>(table: string, id: string, updates: Partial<T>): Promise<{ data: T[] | null; error: any }> {
+    const { data, error } = await supabase.from(table).update(updates).eq('id', id).select();
+    return { data, error };
+}
 
-export const customers: Customer[] = [];
+// Generic delete function
+async function deleteRecord(table: string, id: string): Promise<{ error: any }> {
+    const { error } = await supabase.from(table).delete().eq('id', id);
+    return { error };
+}
 
-export const cities: City[] = [];
 
-export const suppliers: Supplier[] = [];
-
-export const trips: Trip[] = [];
-
-export const expenses: Expense[] = [];
+export {
+    fetchData,
+    fetchById,
+    createRecord,
+    updateRecord,
+    deleteRecord
+}
