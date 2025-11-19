@@ -1,1 +1,0 @@
-ALTER TABLE users ADD CONSTRAINT username_validation CHECK (username ~ '^[a-z]{1,6}$');
