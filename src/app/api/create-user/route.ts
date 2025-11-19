@@ -8,6 +8,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Username and password are required.' }, { status: 400 });
   }
 
+  // Validate username: 6 alphabetic characters
+  if (!/^[a-zA-Z]{6}$/.test(username)) {
+    return NextResponse.json({ message: 'Username must be 6 alphabetic characters.' }, { status: 400 });
+  }
+
+  // Validate password: 6 numeric characters
+  if (!/^[0-9]{6}$/.test(password)) {
+    return NextResponse.json({ message: 'Password must be 6 numeric characters.' }, { status: 400 });
+  }
+
   const email = `${username}@jtn.com.pk`;
 
   try {
