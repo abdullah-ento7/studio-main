@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { fetchData } from '@/lib/data';
-import type { Driver, Vehicle, Customer, City, Supplier, Trip, Expense, Owner, User, Bill } from "@/lib/types";
+import type { Driver, Vehicle, Customer, City, Supplier, Trip, Expense, Owner, Bill } from "@/lib/types";
 
 interface DataContextProps {
     drivers: Driver[];
@@ -21,11 +21,8 @@ interface DataContextProps {
     setExpenses: React.Dispatch<React.SetStateAction<Expense[]>>;
     owners: Owner[];
     setOwners: React.Dispatch<React.SetStateAction<Owner[]>>;
-    users: User[];
-    setUsers: React.Dispatch<React.SetStateAction<User[]>>;
     savedBills: Bill[];
     setSavedBills: React.Dispatch<React.SetStateAction<Bill[]>>;
-    refreshUsers: () => Promise<void>;
     refreshBills: () => Promise<void>;
 }
 
@@ -40,12 +37,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const [trips, setTrips] = useState<Trip[]>([]);
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [owners, setOwners] = useState<Owner[]>([]);
-    const [users, setUsers] = useState<User[]>([]);
     const [savedBills, setSavedBills] = useState<Bill[]>([]);
 
     const refreshData = async () => {
-        const tables = ['drivers', 'vehicles', 'customers', 'cities', 'suppliers', 'trips', 'expenses', 'owners', 'users', 'bills'];
-        const setters = [setDrivers, setVehicles, setCustomers, setCities, setSuppliers, setTrips, setExpenses, setOwners, setUsers, setSavedBills];
+        const tables = ['drivers', 'vehicles', 'customers', 'cities', 'suppliers', 'trips', 'expenses', 'owners', 'bills'];
+        const setters = [setDrivers, setVehicles, setCustomers, setCities, setSuppliers, setTrips, setExpenses, setOwners, setSavedBills];
 
         for (let i = 0; i < tables.length; i++) {
             const { data, error } = await fetchData(tables[i]);
@@ -61,11 +57,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         refreshData();
     }, []);
 
-    const refreshUsers = async () => {
-        const { data, error } = await fetchData('users');
-        if (error) console.error('Error fetching users:', error); else setUsers(data as User[]);
-    };
-
     const refreshBills = async () => {
         const { data, error } = await fetchData('bills');
         if (error) console.error('Error fetching bills:', error); else setSavedBills(data as Bill[]);
@@ -80,9 +71,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         trips, setTrips,
         expenses, setExpenses,
         owners, setOwners,
-        users, setUsers,
         savedBills, setSavedBills,
-        refreshUsers,
         refreshBills,
     };
 

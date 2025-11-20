@@ -54,7 +54,7 @@ type CustomerShipments = {
 
 export default function TripsTabContent() {
   const { trips, setTrips, vehicles, drivers, cities, customers, expenses } = useData();
-  const { loggedInUser } = useAuth();
+  const { user: loggedInUser } = useAuth();
   const { toast } = useToast();
   const [startDate, setStartDate] = useState<Date>();
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>();

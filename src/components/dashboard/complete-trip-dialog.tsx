@@ -47,7 +47,7 @@ export default function CompleteTripDialog({
   onComplete,
 }: CompleteTripDialogProps) {
   const { toast } = useToast();
-  const { loggedInUser } = useAuth();
+  const { user: loggedInUser } = useAuth();
   const [endDate, setEndDate] = useState<Date>();
   const [endCityId, setEndCityId] = useState<string>('');
   const [isDirty, setIsDirty] = useState(false);

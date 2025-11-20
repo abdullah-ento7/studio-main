@@ -7,7 +7,7 @@ import type { User } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import { fetchById, updateRecord, fetchData as fetchTableData } from '@/lib/data';
 
-type UserStatus = "approved" | "pending" | "disabled";
+type UserStatus = "approved" | "pending" | "disabled" | "rejected";
 
 interface AuthContextProps {
   user: User | null;
@@ -18,6 +18,7 @@ interface AuthContextProps {
   createAccount: (username: string, password: string) => Promise<boolean>;
   fetchUsers: () => Promise<void>;
   updateUserStatus: (userId: string, status: UserStatus) => Promise<void>;
+  updateUser: (userId: string, updates: Partial<User>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -186,6 +187,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [user, toast]);
 
+  const updateUser = async (userId: string, updates: Partial<User>) => {
+    if (user?.role !== 'admin') {
+      toast({ title: 'Permission Denied', description: 'You do not have permission to update user information.', variant: 'destructive' });
+      return;
+    }
+
+    const { data, error } = await updateRecord('users', userId, updates);
+
+    if (error) {
+      console.error('Error updating user:', error.message);
+      toast({ title: 'Update Failed', description: 'Could not update user information.', variant: 'destructive' });
+    } else {
+      toast({ title: 'Update Successful', description: 'User information has been updated.' });
+      if (data) {
+        setUsers(prevUsers => prevUsers.map(u => u.id === userId ? { ...u, ...data[0] } : u));
+      }
+    }
+  };
+
   const updateUserStatus = async (userId: string, status: UserStatus) => {
     if (user?.role !== 'admin') {
       toast({ title: 'Permission Denied', description: 'You do not have permission to update user status.', variant: 'destructive' });
@@ -204,7 +224,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, users, loading, login, logout, createAccount, fetchUsers, updateUserStatus }}>
+    <AuthContext.Provider value={{ user, users, loading, login, logout, createAccount, fetchUsers, updateUser, updateUserStatus }}>
       {children}
     </AuthContext.Provider>
   );

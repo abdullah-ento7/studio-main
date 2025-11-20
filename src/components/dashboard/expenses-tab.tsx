@@ -62,7 +62,7 @@ interface TripExpenseState {
 
 export default function ExpensesTab() {
   const { trips, vehicles, suppliers, setExpenses, expenses, cities } = useData();
-  const { loggedInUser } = useAuth();
+  const { user: loggedInUser } = useAuth();
   const { toast } = useToast();
   
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());

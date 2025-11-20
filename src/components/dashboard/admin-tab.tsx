@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -11,7 +11,6 @@ import {
   CardFooter
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useData } from '@/context/data-context';
 import { useAuth } from '@/context/auth-context';
 import { User } from '@/lib/types';
 import { Switch } from '@/components/ui/switch';
@@ -32,16 +31,18 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '../ui/badge';
 
 export default function AdminTab() {
-  const dataContext = useData();
   const authContext = useAuth();
   const { user: loggedInUser } = useAuth();
 
-  if (!dataContext || !authContext) {
+  if (!authContext) {
     return <div>Loading...</div>;
   }
 
-  const { users, setUsers } = dataContext;
-  const { updateUserStatus, updateUser } = authContext;
+  const { users, updateUserStatus, updateUser, fetchUsers } = authContext;
+
+    useEffect(() => {
+        fetchUsers();
+    }, []);
 
   const [newUsername, setNewUsername] = useState('');
   const [newlyCreatedUser, setNewlyCreatedUser] = useState<User | null>(null);
@@ -76,7 +77,7 @@ export default function AdminTab() {
       status: loggedInUser?.permissions?.admin ? 'approved' : 'pending',
     };
 
-    setUsers(prev => [...prev, newUser]);
+    //setUsers(prev => [...prev, newUser]);
     setNewUsername('');
     setNewlyCreatedUser(newUser);
     toast({ title: 'User Created', description: 'A new user has been created with a temporary password.'});
@@ -94,7 +95,7 @@ export default function AdminTab() {
         }
     }
 
-    updateUser(editingUser);
+    updateUser(editingUser.id, editingUser);
     setEditingUser(null);
   };
 

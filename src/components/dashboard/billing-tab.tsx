@@ -55,7 +55,7 @@ import { useAuth } from '@/context/auth-context';
 
 export default function BillingTab() {
   const { drivers, vehicles, customers, trips, setTrips, expenses, suppliers, cities, savedBills, setSavedBills } = useData();
-  const { loggedInUser } = useAuth();
+  const { user: loggedInUser } = useAuth();
   const { toast } = useToast();
 
   const [billFor, setBillFor] = React.useState<'trip' | 'customer' | 'supplier' | 'driver'>();
@@ -163,7 +163,6 @@ export default function BillingTab() {
         date: paymentDate.toISOString(),
         description: paymentType === 'advance' ? 'Advance Payment' : paymentDescription,
         createdBy: loggedInUser.username,
-        // FIX: Added optional chaining for permissions
         status: loggedInUser.permissions?.admin ? 'approved' : 'pending',
     };
 
@@ -435,7 +434,6 @@ export default function BillingTab() {
     supplier: suppliers.map(s => ({ value: s.id, label: s.name })),
   };
   
-  // FIX: Added optional chaining
   const isAdmin = loggedInUser?.permissions?.admin;
 
   return (

@@ -34,7 +34,7 @@ import { useAuth } from '@/context/auth-context';
 
 export default function ReportTab() {
   const { drivers, vehicles, cities, customers, trips, suppliers, expenses } = useData();
-  const { loggedInUser } = useAuth();
+  const { user: loggedInUser } = useAuth();
   const { toast } = useToast();
   const [fromDate, setFromDate] = React.useState<Date>();
   const [toDate, setToDate] = React.useState<Date>();

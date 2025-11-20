@@ -15,6 +15,7 @@ export type Owner = {
   name: string;
   contact: string;
   cnic: string;
+  email?: string;
 }
 
 export type Chamber = {
@@ -86,6 +87,7 @@ export type Customer = {
   name: string;
   contact: string;
   address: string;
+  email?: string;
   companyName?: string;
   companyRegNo?: string;
   companyOwner?: string;
@@ -304,4 +306,3 @@ export interface Bill {
     approvalStatus: 'pending' | 'approved' | 'rejected';
     approvedBy?: string;
 }
-

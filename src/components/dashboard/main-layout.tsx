@@ -25,7 +25,7 @@ import ApprovalsTab from './approvals-tab';
 import { useAuth } from '@/context/auth-context';
 
 export default function MainLayout() {
-    const { loggedInUser } = useAuth();
+    const { user: loggedInUser } = useAuth();
 
     if (!loggedInUser) {
         return null;
