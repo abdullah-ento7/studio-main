@@ -104,6 +104,7 @@ export type Supplier = {
   name: string;
   contact: string;
   cnic: string;
+  email?: string;
   service: MaterialOrService[];
 };
 
@@ -263,7 +264,7 @@ export type User = {
   id: string;
   username: string;
   role: 'admin' | 'user';
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'approved' | 'rejected' | 'disabled';
   password?: string;
   permissions?: {
     dashboard?: boolean;

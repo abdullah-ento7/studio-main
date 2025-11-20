@@ -75,7 +75,7 @@ export default function TripsTabContent() {
   const [tokenNumber, setTokenNumber] = useState('');
 
 
-  const isAdmin = loggedInUser?.permissions.admin;
+  const isAdmin = loggedInUser?.permissions?.admin;
 
   const activeTrips = trips.filter(t => t.status === 'active');
   const savedTrips = trips.filter(t => t.status === 'saved');
